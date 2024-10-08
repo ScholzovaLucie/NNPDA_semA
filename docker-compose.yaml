@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: nnpdasemA
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: heslo
+    ports:
+      - 5432:5432
