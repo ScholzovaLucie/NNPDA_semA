@@ -15,8 +15,6 @@ java {
 
 repositories {
 	mavenCentral()
-	// Přidáváme JCenter pro starší knihovny, pokud Maven Central nenajde závislosti
-	jcenter()
 }
 
 dependencies {

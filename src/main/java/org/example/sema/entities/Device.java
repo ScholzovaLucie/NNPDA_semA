@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"deviceName", "user_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"device_name", "user_id"})})
 public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
