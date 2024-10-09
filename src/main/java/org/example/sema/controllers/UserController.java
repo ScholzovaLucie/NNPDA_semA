@@ -1,5 +1,8 @@
 package org.example.sema.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +14,7 @@ import java.util.List;
 
 @RequestMapping("/users")
 @RestController
+@Tag(name = "User", description = "Info about user.")
 public class UserController {
     private final UserService userService;
 
@@ -19,6 +23,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Get information about user")
     public ResponseEntity<ApplicationUser> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -28,6 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/")
+    @Operation(summary = "Get information about all users")
     public ResponseEntity<List<ApplicationUser>> allUsers() {
         List<ApplicationUser> users = userService.allUsers();
 

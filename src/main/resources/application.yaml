@@ -25,6 +25,12 @@ spring:
             enable: true
           ssl:
             trust: "*"
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
 server:
   port: 2024
 security:

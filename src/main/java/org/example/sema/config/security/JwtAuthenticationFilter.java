@@ -1,5 +1,6 @@
-package org.example.sema.security;
+package org.example.sema.config.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,8 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        } catch (Exception exception) {
-            handlerExceptionResolver.resolveException(request, response, null, exception);
+        } catch (JwtException | IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Unauthorized: " + e.getMessage());
         }
     }
+
 }

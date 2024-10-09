@@ -1,5 +1,7 @@
 package org.example.sema.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.sema.dtos.CreateSensorDTO;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.entities.Device;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/sensors")
+@Tag(name = "Sensor", description = "Manage sensors for user devices.")
 public class SensorController {
     @Autowired
     private SensorRepository sensorRepository;
@@ -34,6 +37,7 @@ public class SensorController {
     }
 
     @PostMapping("/add")
+    @Operation(summary = "Create sensor for users device")
     public ResponseEntity<String> addDevice(@RequestBody CreateSensorDTO sensorData, @RequestHeader("Authorization") String token) {
 
         if (token.startsWith("Bearer ")) {

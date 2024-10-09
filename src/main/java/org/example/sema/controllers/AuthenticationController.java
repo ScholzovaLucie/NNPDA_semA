@@ -1,5 +1,7 @@
 package org.example.sema.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.sema.dtos.*;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.service.AuthenticationService;
@@ -17,6 +19,7 @@ import java.util.Date;
 
 @RequestMapping("/auth")
 @RestController
+@Tag(name = "Authentication", description = "Manage users.")
 public class AuthenticationController {
     private final JwtService jwtService;
 
@@ -28,6 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
+    @Operation(summary = "Create new user")
     public ResponseEntity<ApplicationUser> register(@RequestBody RegisterUserDto registerUserDto) {
         ApplicationUser registeredUser = authenticationService.signup(registerUserDto);
 
@@ -35,6 +39,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login existing user")
     public ResponseEntity<LoginDTO> authenticate(@RequestBody LoginUserDto loginUserDto) {
         ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
 
@@ -46,16 +51,20 @@ public class AuthenticationController {
     }
 
     @PostMapping("/reset-password")
+    @Operation(summary = "Send email with token for reset password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto request) {
         String jwtToken = jwtService.generateResetToken(request.getUsername());
-        Date expiration = jwtService.extractExpiration(jwtToken);
-        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken, expiration);
+        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken);
         return ResponseEntity.ok("Reset token sent to email.");
     }
 
     @PostMapping("/set-password")
+    @Operation(summary = "Reset password with token")
     public ResponseEntity<String> resetPassword(@RequestBody ChangePasswordDto request) {
-        boolean result = authenticationService.resetPassword(request.getToken(), request.getNewPassword());
+        String token = request.getToken();
+        String username = jwtService.extractUsername(token);
+        Date expiration = jwtService.extractExpiration(token);
+        boolean result = authenticationService.resetPassword(username, expiration, request.getNewPassword());
         if (result) {
             return ResponseEntity.ok("Password has been successfully reset.");
         } else {
@@ -64,6 +73,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/change-password")
+    @Operation(summary = "Reset password by old token")
     public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeRequest) {
         try {
             authenticationService.changePassword(
@@ -76,7 +86,4 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
-
-
 }

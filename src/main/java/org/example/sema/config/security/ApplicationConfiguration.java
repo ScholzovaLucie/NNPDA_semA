@@ -1,4 +1,4 @@
-package org.example.sema.security;
+package org.example.sema.config.security;
 
 import org.example.sema.repository.UserRepository;
 import org.springframework.context.annotation.Bean;

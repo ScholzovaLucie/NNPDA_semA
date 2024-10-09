@@ -1,5 +1,7 @@
 package org.example.sema.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.sema.dtos.CreateDeviceDTO;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.entities.Device;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/devices")
+@Tag(name = "Device", description = "Manage users devices.")
 public class DeviceController {
 
     @Autowired
@@ -32,6 +35,7 @@ public class DeviceController {
     }
 
     @PostMapping("/add")
+    @Operation(summary = "Create new device for user")
     public ResponseEntity<String> addDevice(@RequestBody CreateDeviceDTO deviceData, @RequestHeader("Authorization") String token) {
 
         if (token.startsWith("Bearer ")) {
@@ -57,6 +61,7 @@ public class DeviceController {
     }
 
     @GetMapping("/my-devices")
+    @Operation(summary = "Get devices for user")
     public ResponseEntity<List<Device>> getMyDevices(@RequestHeader("Authorization") String token) {
 
         if (token.startsWith("Bearer ")) {
