@@ -1,9 +1,11 @@
 package org.example.sema.controllers;
 
+import org.example.sema.dtos.ChangePasswordDto;
 import org.example.sema.dtos.LoginUserDto;
 import org.example.sema.dtos.RegisterUserDto;
 import org.example.sema.dtos.ResetPasswordDto;
 import org.example.sema.entities.ApplicationUser;
+import org.example.sema.entities.PasswordResetToken;
 import org.example.sema.responses.LoginResponse;
 import org.example.sema.service.AuthenticationService;
 import org.example.sema.service.JwtService;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Date;
 
 
 @RequestMapping("/auth")
@@ -47,8 +51,19 @@ public class AuthenticationController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto request) {
         String jwtToken = jwtService.generateResetToken(request.getUsername());
-        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken);
+        Date expiration = jwtService.extractExpiration(jwtToken);
+        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken, expiration);
         return ResponseEntity.ok("Reset token sent to email.");
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ChangePasswordDto request) {
+        boolean result = authenticationService.resetPassword(request.getToken(), request.getNewPassword());
+        if (result) {
+            return ResponseEntity.ok("Password has been successfully reset.");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid token or token expired.");
+        }
     }
 
 }

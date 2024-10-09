@@ -1,14 +1,22 @@
 package org.example.sema.service;
 
+import io.jsonwebtoken.Claims;
 import org.example.sema.dtos.LoginUserDto;
 import org.example.sema.dtos.RegisterUserDto;
 import org.example.sema.entities.ApplicationUser;
+import org.example.sema.entities.PasswordResetToken;
 import org.example.sema.repository.ApplicationUserRepository;
+import org.example.sema.repository.PasswordResetTokenRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 
 
 @Service
@@ -16,11 +24,13 @@ public class AuthenticationService {
     private final ApplicationUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final PasswordResetTokenRepository tokenRepository;
 
-    public AuthenticationService(ApplicationUserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public AuthenticationService(ApplicationUserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, PasswordResetTokenRepository tokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.tokenRepository = tokenRepository;
     }
 
     public ApplicationUser signup(RegisterUserDto registerUserDto) {
@@ -42,7 +52,7 @@ public class AuthenticationService {
         return user;
     }
 
-    public void sendPasswordResetToken(String username, String resetToken) {
+    public void sendPasswordResetToken(String username, String resetToken, Date expiration) {
         ApplicationUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
@@ -50,5 +60,28 @@ public class AuthenticationService {
         String body = "Pro resetování hesla použijte neto token: " + resetToken;
 
         emailService.sendEmail(user.getEmail(), subject, body);
+
+        PasswordResetToken resetTokenDb = new PasswordResetToken();
+        resetTokenDb.setToken(resetToken);
+        resetTokenDb.setExpiryDate(expiration);
+        resetTokenDb.setUser(user);
+
+        tokenRepository.save(resetTokenDb);
+    }
+
+    public boolean resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token);
+
+        if (resetToken == null || resetToken.getExpiryDate().before(new Date())) {
+            return false;
+        }
+
+        ApplicationUser user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        tokenRepository.delete(resetToken);
+
+        return true;
     }
 }
