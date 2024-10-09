@@ -12,6 +12,19 @@ spring:
         format_sql: true
   main:
     allow-bean-definition-overriding: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: lucka.scholz@gmail.com
+    password: bmfe hwyw lgrq obcy
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: "*"
 server:
   port: 2024
 security:

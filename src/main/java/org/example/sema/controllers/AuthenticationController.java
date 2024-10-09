@@ -2,6 +2,7 @@ package org.example.sema.controllers;
 
 import org.example.sema.dtos.LoginUserDto;
 import org.example.sema.dtos.RegisterUserDto;
+import org.example.sema.dtos.ResetPasswordDto;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.responses.LoginResponse;
 import org.example.sema.service.AuthenticationService;
@@ -41,6 +42,13 @@ public class AuthenticationController {
         LoginResponse loginResponse = new LoginResponse().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime());
 
         return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto request) {
+        String jwtToken = jwtService.generateResetToken(request.getUsername());
+        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken);
+        return ResponseEntity.ok("Reset token sent to email.");
     }
 
 }
