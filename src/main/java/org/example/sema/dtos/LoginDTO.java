@@ -1,19 +1,19 @@
-package org.example.sema.responses;
+package org.example.sema.dtos;
 
 import lombok.Getter;
 
 @Getter
-public class LoginResponse {
+public class LoginDTO {
     private String token;
 
     private long expiresIn;
 
-    public LoginResponse setToken(String token) {
+    public LoginDTO setToken(String token) {
         this.token = token;
         return this;
     }
 
-    public LoginResponse setExpiresIn(long expiresIn) {
+    public LoginDTO setExpiresIn(long expiresIn) {
         this.expiresIn = expiresIn;
         return this;
     }

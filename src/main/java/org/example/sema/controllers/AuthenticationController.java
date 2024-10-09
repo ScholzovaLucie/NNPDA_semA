@@ -2,7 +2,6 @@ package org.example.sema.controllers;
 
 import org.example.sema.dtos.*;
 import org.example.sema.entities.ApplicationUser;
-import org.example.sema.responses.LoginResponse;
 import org.example.sema.service.AuthenticationService;
 import org.example.sema.service.JwtService;
 import org.springframework.http.HttpStatus;
@@ -36,12 +35,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto) {
+    public ResponseEntity<LoginDTO> authenticate(@RequestBody LoginUserDto loginUserDto) {
         ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        LoginResponse loginResponse = new LoginResponse().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime());
+        LoginDTO loginResponse = new LoginDTO().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime());
 
         return ResponseEntity.ok(loginResponse);
     }
@@ -77,5 +76,7 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+
 
 }
