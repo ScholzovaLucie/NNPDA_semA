@@ -2,6 +2,7 @@ package org.example.sema.service;
 
 import io.jsonwebtoken.Claims;
 import org.example.sema.dtos.LoginUserDto;
+import org.example.sema.dtos.PasswordChangeDto;
 import org.example.sema.dtos.RegisterUserDto;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.entities.PasswordResetToken;
@@ -83,5 +84,19 @@ public class AuthenticationService {
         tokenRepository.delete(resetToken);
 
         return true;
+    }
+
+    public void changePassword(String username, String oldPassword, String newPassword) throws Exception {
+        ApplicationUser user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new Exception("Old password is incorrect");
+        }
+
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedNewPassword);
+
+        userRepository.save(user);
     }
 }
