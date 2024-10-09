@@ -5,7 +5,11 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CreateSensorDTO {
-    private String name;
-    private String deviceName;
+public class LoginUserDTO {
+
+    private String username;
+
+    private String password;
+
+
 }

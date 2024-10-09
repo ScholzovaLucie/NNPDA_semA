@@ -38,7 +38,7 @@ public class ApplicationUser implements UserDetails {
     @Column(unique=true, nullable = false)
     private String username;
 
-    @Column(unique = true, length = 100, nullable = false)
+    @Column(length = 100, nullable = false)
     private String email;
 
     @CreationTimestamp

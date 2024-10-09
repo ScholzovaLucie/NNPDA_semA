@@ -5,7 +5,9 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CreateSensorDTO {
+public class UpdateSensorDTO {
     private String name;
     private String deviceName;
+
+    private String newName;
 }

@@ -1,8 +1,13 @@
 package org.example.sema.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.sema.dtos.CreateDeviceDTO;
+import org.example.sema.dtos.UpdateDeviceDTO;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.entities.Device;
 import org.example.sema.repository.DeviceRepository;
@@ -34,10 +39,17 @@ public class DeviceController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping("/add")
-    @Operation(summary = "Create new device for user")
-    public ResponseEntity<String> addDevice(@RequestBody CreateDeviceDTO deviceData, @RequestHeader("Authorization") String token) {
-
+    @PostMapping("")
+    @Operation(
+            summary = "Create a new device for user",
+            description = "Create a new device associated with the authenticated user. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Device created successfully", content = @Content(schema = @Schema(implementation = Device.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found"),
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
+            }
+    )
+    public ResponseEntity<?> addDevice(@RequestBody CreateDeviceDTO deviceData, @RequestHeader("Authorization") String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -52,7 +64,7 @@ public class DeviceController {
         ApplicationUser user = optionalUser.get();
 
         Device device = new Device();
-        device.setDeviceName(deviceData.getDeviceName());
+        device.setDeviceName(deviceData.getName());
         device.setUser(user);
 
         deviceRepository.save(device);
@@ -60,9 +72,16 @@ public class DeviceController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Device added successfully");
     }
 
-    @GetMapping("/my-devices")
-    @Operation(summary = "Get devices for user")
-    public ResponseEntity<List<Device>> getMyDevices(@RequestHeader("Authorization") String token) {
+    @GetMapping("")
+    @Operation(
+            summary = "Retrieve devices for user",
+            description = "Retrieve all devices associated with the authenticated user. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Devices retrieved successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Device.class)))),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
+    public ResponseEntity<?> getMyDevices(@RequestHeader("Authorization") String token) {
 
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
@@ -72,7 +91,7 @@ public class DeviceController {
 
         Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
         ApplicationUser user = optionalUser.get();
@@ -81,4 +100,73 @@ public class DeviceController {
 
         return ResponseEntity.ok(devices);
     }
+
+    @PutMapping("")
+    @Operation(
+            summary = "Update a device by name",
+            description = "Update the device name for a specific device associated with the authenticated user. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Device updated successfully"),
+                    @ApiResponse(responseCode = "404", description = "Device or user not found")
+            }
+    )
+    public ResponseEntity<?> updateDeviceByName(@RequestBody UpdateDeviceDTO deviceData, @RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        String username = jwtService.extractUsername(token);
+
+        Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        ApplicationUser user = optionalUser.get();
+
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(deviceData.getName(), user);
+        if (optionalDevice.isPresent()) {
+            Device device = optionalDevice.get();
+            device.setDeviceName(deviceData.getNewName());
+            deviceRepository.save(device);
+            return ResponseEntity.ok("Device updated successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found");
+        }
+    }
+
+    @DeleteMapping("")
+    @Operation(
+            summary = "Delete a device by name",
+            description = "Delete a specific device by name associated with the authenticated user. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Device deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Device or user not found")
+            }
+    )
+    public ResponseEntity<?> deleteDeviceByName(@RequestBody CreateDeviceDTO deviceData, @RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        String username = jwtService.extractUsername(token);
+
+
+        Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        ApplicationUser user = optionalUser.get();
+
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(deviceData.getName(), user);
+        if (optionalDevice.isPresent()) {
+            deviceRepository.delete(optionalDevice.get());
+            return ResponseEntity.ok("Device deleted successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found");
+        }
+    }
+
+
 }

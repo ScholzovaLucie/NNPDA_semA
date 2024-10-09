@@ -6,5 +6,5 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CreateDeviceDTO {
-    private String deviceName;
+    private String name;
 }

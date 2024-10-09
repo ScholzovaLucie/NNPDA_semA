@@ -1,11 +1,9 @@
 package org.example.sema.service;
 
-import org.example.sema.dtos.LoginUserDto;
-import org.example.sema.dtos.RegisterUserDto;
+import org.example.sema.dtos.LoginUserDTO;
+import org.example.sema.dtos.RegisterUserDTO;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.repository.ApplicationUserRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,7 @@ public class AuthenticationService {
         this.emailService = emailService;
     }
 
-    public ApplicationUser signup(RegisterUserDto registerUserDto) {
+    public ApplicationUser signup(RegisterUserDTO registerUserDto) {
         ApplicationUser user = new ApplicationUser();
         user.setUsername(registerUserDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerUserDto.getPassword()));
@@ -34,7 +32,7 @@ public class AuthenticationService {
         return userRepository.save(user);
     }
 
-    public ApplicationUser authenticate(LoginUserDto loginUserDto) {
+    public ApplicationUser authenticate(LoginUserDTO loginUserDto) {
         ApplicationUser user = userRepository.findByUsername(loginUserDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 

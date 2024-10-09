@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ChangePasswordDto {
-    private String token;
-    private String newPassword;
+public class UpdateDeviceDTO {
+    private String name;
+    private String newName;
 }
