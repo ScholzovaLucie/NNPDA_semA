@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = { "sensorName", "device_id" }) // Unikátní kombinace sensorName a device_id
+                @UniqueConstraint(columnNames = { "sensor_name", "device_id" }) // Unikátní kombinace sensorName a device_id
         }
 )
 public class Sensor {
@@ -21,11 +21,11 @@ public class Sensor {
     @Column(nullable = false)
     private String sensorName;
 
-    @Setter
-    @Getter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id", nullable = false)
+    @Getter
+    @Setter
     @JsonIgnore
-    private Device device;  // Každý senzor patří jednomu měřícímu zařízení
+    private Device device;
 
 }

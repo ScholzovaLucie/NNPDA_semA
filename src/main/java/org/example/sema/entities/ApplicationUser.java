@@ -23,7 +23,6 @@ import java.util.*;
         }
 )
 @NoArgsConstructor
-@Data
 public class ApplicationUser implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,16 +37,29 @@ public class ApplicationUser implements UserDetails {
     @Column(unique=true, nullable = false)
     private String username;
 
+    @Getter
     @Column(length = 100, nullable = false)
     private String email;
 
+    @Getter
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
+    @Getter
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_device",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "device_id")
+    )
+    @Getter
+    @Setter
+    private Set<Device> devices = new HashSet<>();
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

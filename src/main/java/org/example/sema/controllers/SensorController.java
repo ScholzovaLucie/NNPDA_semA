@@ -65,7 +65,7 @@ public class SensorController {
 
         ApplicationUser user = optionalUser.get();
 
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(sensorData.getDeviceName(), user);
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
 
         if (optionalDevice.isPresent()) {
             Device device = optionalDevice.get();
@@ -106,7 +106,7 @@ public class SensorController {
 
         ApplicationUser user = optionalUser.get();
 
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(sensorData.getDeviceName(), user);
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
         if (optionalDevice.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found for the given user");
         }
@@ -147,7 +147,7 @@ public class SensorController {
 
         ApplicationUser user = optionalUser.get();
 
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(sensorData.getDeviceName(), user);
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
         if (optionalDevice.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found for the given user");
         }

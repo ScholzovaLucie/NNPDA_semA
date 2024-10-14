@@ -64,11 +64,26 @@ public class DeviceController {
 
         Device device = new Device();
         device.setDeviceName(deviceData.getName());
-        device.setUser(user);
+        user.getDevices().add(device);
+        device.getUsers().add(user);
 
+        userRepository.save(user);
         deviceRepository.save(device);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Device added successfully");
+    }
+
+    @GetMapping("/all")
+    @Operation(
+            summary = "Retrieve all devices",
+            description = "Retrieve all devices. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Devices retrieved successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Device.class))))
+            }
+    )
+    public ResponseEntity<?> getAllDevices(@RequestHeader("Authorization") String token) {
+        List<Device> devices = deviceRepository.findAll();
+        return ResponseEntity.ok(devices);
     }
 
     @GetMapping("")
@@ -95,7 +110,7 @@ public class DeviceController {
 
         ApplicationUser user = optionalUser.get();
 
-        List<Device> devices = deviceRepository.findByUser(user);
+        List<Device> devices = deviceRepository.findByUsers(user);
 
         return ResponseEntity.ok(devices);
     }
@@ -123,7 +138,7 @@ public class DeviceController {
 
         ApplicationUser user = optionalUser.get();
 
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(deviceData.getName(), user);
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(deviceData.getName(), user);
         if (optionalDevice.isPresent()) {
             Device device = optionalDevice.get();
             device.setDeviceName(deviceData.getNewName());
@@ -158,7 +173,7 @@ public class DeviceController {
 
         ApplicationUser user = optionalUser.get();
 
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUser(deviceData.getName(), user);
+        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(deviceData.getName(), user);
         if (optionalDevice.isPresent()) {
             deviceRepository.delete(optionalDevice.get());
             return ResponseEntity.ok("Device deleted successfully");

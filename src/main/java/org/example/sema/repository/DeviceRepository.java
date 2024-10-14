@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
-    List<Device> findByUser(ApplicationUser user);
-    Optional<Device> findByDeviceNameAndUser(String deviceName, ApplicationUser user);
+    List<Device> findByUsers(ApplicationUser user);
+    Optional<Device> findByDeviceNameAndUsers(String deviceName, ApplicationUser user);
 }

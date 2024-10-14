@@ -5,7 +5,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"device_name", "user_id"})})
@@ -19,16 +22,15 @@ public class Device {
     @Column(nullable = false)
     private String deviceName;
 
-    @Setter
+    @ManyToMany(mappedBy = "devices")
     @Getter
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @Setter
     @JsonIgnore
-    private ApplicationUser user; // Každé zařízení patří jednomu uživateli
+    private Set<ApplicationUser> users = new HashSet<>();
 
-    @Setter
-    @Getter
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Sensor> sensors;  // Každé zařízení může mít více senzorů
+    @Getter
+    @Setter
+    private List<Sensor> sensors = new ArrayList<>();
 
 }
