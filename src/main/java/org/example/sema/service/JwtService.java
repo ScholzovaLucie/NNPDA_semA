@@ -17,81 +17,88 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+
     @Value("${security.jwt.secret-key}")
-    private String secretKey;
+    private String secretKey;  // Tajný klíč pro podpis JWT
 
     @Value("${security.jwt.expiration-time}")
-    private long jwtExpiration;
+    private long jwtExpiration;  // Doba platnosti tokenu
 
+    /**
+     * Extrahuje uživatelské jméno (subject) z tokenu.
+     */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Obecná metoda pro extrakci claimů z tokenu.
+     */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claimsResolver.apply(extractAllClaims(token));
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails.getUsername());
+    /**
+     * Vygeneruje token pro uživatele na základě uživatelských detailů.
+     */
+    public String generateToken(String username) {
+        return buildToken(new HashMap<>(), username, jwtExpiration);
     }
 
-    public String generateResetToken(String username) {
-        return generateToken(new HashMap<>(), username);
-    }
-
-    public String generateToken(Map<String, Object> extraClaims, String username) {
-        return buildToken(extraClaims, username, jwtExpiration);
+    /**
+     * Kontroluje, zda je token platný pro zadané uživatelské detaily.
+     */
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     public long getExpirationTime() {
         return jwtExpiration;
     }
 
-    private String buildToken(
-            Map<String, Object> extraClaims,
-            String username,
-            long expiration
-    ) {
-        return Jwts
-                .builder()
-                .setClaims(extraClaims)
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
+    /**
+     * Získá datum vypršení platnosti z tokenu.
+     */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(this.getSignInKey()).parseClaimsJws(token).getBody();
-    }
-
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    private String createToken(Map<String, Object> claims, String subject) {
+    /**
+     * Vytváří a podepisuje nový token s dodatečnými claimy a uživatelským jménem.
+     */
+    private String buildToken(Map<String, Object> extraClaims, String username, long expiration) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setClaims(extraClaims)                 // Nastaví extra claimy
+                .setSubject(username)                   // Nastaví subject (uživatelské jméno)
+                .setIssuedAt(new Date())                // Nastaví datum vytvoření
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))  // Nastaví datum expirace
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)  // Podepíše token
                 .compact();
+    }
+
+    /**
+     * Ověří, zda token vypršel.
+     */
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    /**
+     * Extrahuje všechny claimy z tokenu.
+     */
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSignInKey())  // Nastaví klíč pro ověření podpisu
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    /**
+     * Získá klíč pro podpis tokenu na základě tajného klíče.
+     */
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);  // Dekóduje tajný klíč
+        return Keys.hmacShaKeyFor(keyBytes);  // Vytvoří HMAC SHA klíč
     }
 }

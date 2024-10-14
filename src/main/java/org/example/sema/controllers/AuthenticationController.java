@@ -59,7 +59,7 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticate(@RequestBody LoginUserDTO loginUserDto) {
         ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
 
-        String jwtToken = jwtService.generateToken(authenticatedUser);
+        String jwtToken = jwtService.generateToken(authenticatedUser.getUsername());
 
         LoginDTO loginResponse = new LoginDTO().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime());
 
@@ -76,7 +76,7 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO request) {
-        String jwtToken = jwtService.generateResetToken(request.getUsername());
+        String jwtToken = jwtService.generateToken(request.getUsername());
         authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken);
         return ResponseEntity.ok("Reset token sent to email.");
     }
