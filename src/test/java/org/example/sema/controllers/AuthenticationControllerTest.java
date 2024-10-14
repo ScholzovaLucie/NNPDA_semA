@@ -68,7 +68,7 @@ class AuthenticationControllerTest {
         String token = "jwtToken";
 
         when(authenticationService.authenticate(any(LoginUserDTO.class))).thenReturn(authenticatedUser);
-        when(jwtService.generateToken(any(ApplicationUser.class))).thenReturn(token);
+        when(jwtService.generateToken(any(String.class))).thenReturn(token);
 
         ResponseEntity<?> response = authenticationController.authenticate(loginUserDTO);
 
@@ -82,7 +82,7 @@ class AuthenticationControllerTest {
         resetPasswordDTO.setUsername("testuser");
         String token = "resetToken";
 
-        when(jwtService.generateResetToken(anyString())).thenReturn(token);
+        when(jwtService.generateToken(anyString())).thenReturn(token);
 
         ResponseEntity<?> response = authenticationController.resetPassword(resetPasswordDTO);
 
