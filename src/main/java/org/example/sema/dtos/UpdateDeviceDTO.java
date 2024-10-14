@@ -6,6 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class UpdateDeviceDTO {
+    private Long id;
     private String name;
     private String newName;
 }

@@ -5,163 +5,138 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.example.sema.dtos.CreateSensorDTO;
+import lombok.AllArgsConstructor;
 import org.example.sema.dtos.UpdateSensorDTO;
 import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
 import org.example.sema.entities.Sensor;
-import org.example.sema.repository.DeviceRepository;
-import org.example.sema.repository.SensorRepository;
-import org.example.sema.repository.UserRepository;
 import org.example.sema.service.JwtService;
+import org.example.sema.service.SensorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/sensors")
 @Tag(name = "Sensor", description = "Manage sensors for user devices.")
 public class SensorController {
     @Autowired
-    private SensorRepository sensorRepository;
-
-    @Autowired
-    private DeviceRepository deviceRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private SensorService sensorService;
 
     private final JwtService jwtService;
 
-    public SensorController(JwtService jwtService) {
-        this.jwtService = jwtService;
+    @GetMapping("/all")
+    @Operation(
+            summary = "Get all sensors",
+            description = "Retrieve all sensors. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Sensors retrieved successfully", content = @Content(schema = @Schema(implementation = Sensor.class)))
+            }
+    )
+    public ResponseEntity<?> getAllSensors(@RequestHeader("Authorization") String token) {
+        List<Sensor> sensors = sensorService.getAllSensors();
+        return ResponseEntity.status(HttpStatus.OK).body(sensors);
     }
 
-    @PostMapping("")
+    @GetMapping("/me")
     @Operation(
-            summary = "Create a sensor for user's device",
-            description = "Create a new sensor for the device owned by the authenticated user. Requires a valid JWT token.",
+            summary = "Get sensors for authenticated user. Requires a valid JWT token.",
+            description = "Retrieve all sensors associated with the authenticated user. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Sensors retrieved successfully", content = @Content(schema = @Schema(implementation = Sensor.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
+    public ResponseEntity<?> getSensorsForUser(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        String username = jwtService.extractUsername(token);
+        Pair<Optional<ApplicationUser>, String> userResult = sensorService.getUserByUsername(username);
+
+        if (userResult.getFirst().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userResult.getSecond());
+        }
+
+        ApplicationUser user = userResult.getFirst().get();
+        Pair<Optional<List<Sensor>>, String> result = sensorService.getSensorsByUser(user);
+
+        if (result.getFirst().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+    }
+
+    @GetMapping("/device/")
+    @Operation(
+            summary = "Get all sensors for a specific device. Requires a valid JWT token.",
+            description = "Retrieve all sensors for the specified device. Requires a valid JWT token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Sensors retrieved successfully", content = @Content(schema = @Schema(implementation = Sensor.class))),
+                    @ApiResponse(responseCode = "404", description = "Device not found")
+            }
+    )
+    public ResponseEntity<?> getSensorsForDevice(@RequestBody Long deviceId, @RequestHeader("Authorization") String token) {
+        List<Sensor> sensors = sensorService.getSensorsByDevice(deviceId);
+        if (sensors.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found or no sensors found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(sensors);
+    }
+
+    @PostMapping("/")
+    @Operation(
+            summary = "Create a new sensor. Requires a valid JWT token.",
+            description = "Create a new sensor. Requires a valid JWT token.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Sensor added successfully", content = @Content(schema = @Schema(implementation = Sensor.class))),
-                    @ApiResponse(responseCode = "404", description = "User or device not found"),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> addDevice(@RequestBody CreateSensorDTO sensorData, @RequestHeader("Authorization") String token) {
-
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        String username = jwtService.extractUsername(token);
-
-        Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        ApplicationUser user = optionalUser.get();
-
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
-
-        if (optionalDevice.isPresent()) {
-            Device device = optionalDevice.get();
-            Sensor sensor = new Sensor();
-            sensor.setSensorName(sensorData.getName());
-            sensor.setDevice(device);
-            sensorRepository.save(sensor);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body("Sensor added successfully");
-        }
-        else {
-            return ResponseEntity.badRequest().body("Device not found for the given user and device name.");
-        }
+    public ResponseEntity<?> addSensor(@RequestBody String name, @RequestHeader("Authorization") String token) {
+        Pair<Optional<Sensor>, String> result = sensorService.addSensor(name);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result.getSecond());
     }
 
-    @DeleteMapping("")
+    @DeleteMapping("/")
     @Operation(
-            summary = "Delete a sensor by device name and sensor name",
-            description = "Delete a specific sensor identified by its name from the device owned by the authenticated user. Requires a valid JWT token.",
+            summary = "Delete a sensor by ID. Requires a valid JWT token.",
+            description = "Delete a specific sensor by its ID. Requires a valid JWT token.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Sensor deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "User, device, or sensor not found"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
+                    @ApiResponse(responseCode = "404", description = "Sensor not found")
             }
     )
-    public ResponseEntity<?> deleteSensorByDeviceAndSensorName(@RequestBody CreateSensorDTO sensorData, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> deleteSensor(@RequestBody Long id, @RequestHeader("Authorization") String token) {
+        Pair<Optional<Sensor>, String> result = sensorService.deleteSensorById(id);
 
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
+        if (result.getFirst().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
         }
-
-        String username = jwtService.extractUsername(token);
-        Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
-
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        ApplicationUser user = optionalUser.get();
-
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
-        if (optionalDevice.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found for the given user");
-        }
-
-        Device device = optionalDevice.get();
-
-        Optional<Sensor> optionalSensor = sensorRepository.findBySensorNameAndDevice(sensorData.getName(), device);
-        if (optionalSensor.isPresent()) {
-            sensorRepository.delete(optionalSensor.get());
-            return ResponseEntity.ok("Sensor deleted successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sensor not found for the given device and sensor name.");
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
-    @PutMapping("")
+    @PutMapping("/")
     @Operation(
-            summary = "Update a sensor by device name and sensor name",
-            description = "Update the name of a specific sensor identified by its name for the device owned by the authenticated user. Requires a valid JWT token.",
+            summary = "Update sensor name. Requires a valid JWT token.",
+            description = "Update the name of a specific sensor by its ID. Requires a valid JWT token.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Sensor updated successfully"),
-                    @ApiResponse(responseCode = "404", description = "User, device, or sensor not found"),
-                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
+                    @ApiResponse(responseCode = "404", description = "Sensor not found")
             }
     )
-    public ResponseEntity<?> updateSensorByDeviceAndSensorName(@RequestBody UpdateSensorDTO sensorData, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> updateSensorByDeviceAndSensorName(@RequestBody UpdateSensorDTO sensorData, @RequestBody Long id, @RequestHeader("Authorization") String token) {
+        Pair<Optional<Sensor>, String> result = sensorService.updateSensorById(id, sensorData.getNewName());
 
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
+        if (result.getFirst().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
         }
-
-        String username = jwtService.extractUsername(token);
-        Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
-
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        ApplicationUser user = optionalUser.get();
-
-        Optional<Device> optionalDevice = deviceRepository.findByDeviceNameAndUsers(sensorData.getDeviceName(), user);
-        if (optionalDevice.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found for the given user");
-        }
-
-        Device device = optionalDevice.get();
-
-        Optional<Sensor> optionalSensor = sensorRepository.findBySensorNameAndDevice(sensorData.getName(), device);
-        if (optionalSensor.isPresent()) {
-            Sensor sensor = optionalSensor.get();
-            sensor.setSensorName(sensorData.getNewName());
-            sensorRepository.save(sensor);
-            return ResponseEntity.ok("Sensor updated successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sensor not found for the given device and sensor name.");
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 }

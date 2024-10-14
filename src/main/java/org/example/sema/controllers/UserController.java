@@ -13,9 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequestMapping("/users")
 @RestController
-@Tag(name = "User", description = "Info about user.")
+@Tag(name = "User", description = "Info about users.")
 public class UserController {
     private final UserService userService;
 
@@ -26,7 +28,7 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("")
+    @GetMapping("/me")
     @Operation(
             summary = "Retrieve information about the authenticated user",
             description = "Returns the details of the currently authenticated user, based on the JWT token provided in the Authorization header.",
@@ -52,7 +54,20 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PutMapping("")
+    @GetMapping("/all")
+    @Operation(
+            summary = "Retrieve all users",
+            description = "Returns the details of the currently authenticated user, based on the JWT token provided in the Authorization header.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Users information retrieved successfully", content = @Content(schema = @Schema(implementation = ApplicationUser.class))),
+            }
+    )
+    public ResponseEntity<?> allUsers(@RequestHeader("Authorization") String token) {
+        List<ApplicationUser> users = userService.allUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/")
     @Operation(
             summary = "Update the authenticated user's information",
             description = "Allows the currently authenticated user to update their account details, such as name or email, based on the provided request body.",
@@ -62,22 +77,16 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> updateUser(@RequestBody RegisterUserDTO updateUserRequest, @RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        String username = jwtService.extractUsername(token);
-
+    public ResponseEntity<?> updateUser(@RequestBody RegisterUserDTO updateUserRequest, @RequestBody int id, @RequestHeader("Authorization") String token) {
         try {
-            userService.updateUser(username, updateUserRequest);
+            userService.updateUser(id, updateUserRequest);
             return ResponseEntity.ok("User updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update user: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("")
+    @DeleteMapping("/")
     @Operation(
             summary = "Delete the authenticated user's account",
             description = "Deletes the account of the currently authenticated user, removing all associated data.",
@@ -87,14 +96,9 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<?> deleteUser(@RequestBody int id, @RequestHeader("Authorization") String token) {
         try {
-            userService.deleteUser(username);
+            userService.deleteUser(id);
             return ResponseEntity.ok("User deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete user: " + e.getMessage());

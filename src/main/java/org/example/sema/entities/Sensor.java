@@ -5,27 +5,21 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
-@Table(
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = { "sensor_name", "device_id" }) // Unikátní kombinace sensorName a device_id
-        }
-)
+@Getter
+@Setter
 public class Sensor {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Setter
-    @Getter
     @Column(nullable = false)
     private String sensorName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id", nullable = false)
-    @Getter
-    @Setter
     @JsonIgnore
     private Device device;
-
 }

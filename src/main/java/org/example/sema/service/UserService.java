@@ -5,6 +5,7 @@ import org.example.sema.entities.ApplicationUser;
 import org.example.sema.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,8 +23,19 @@ public class UserService {
 
     }
 
-    public void updateUser(String username, RegisterUserDTO updatedUserDto) throws Exception {
-        ApplicationUser user = userRepository.findByUsername(username)
+    public ApplicationUser findUserById(int id) {
+        Optional<ApplicationUser> optionalUser = userRepository.findById(id);
+
+        return optionalUser.orElse(null);
+
+    }
+
+    public List<ApplicationUser> allUsers(){
+        return (List<ApplicationUser>) userRepository.findAll();
+    }
+
+    public void updateUser(int id, RegisterUserDTO updatedUserDto) throws Exception {
+        ApplicationUser user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("User not found"));
 
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
@@ -41,8 +53,8 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void deleteUser(String username) throws Exception {
-        ApplicationUser user = userRepository.findByUsername(username)
+    public void deleteUser(int id) throws Exception {
+        ApplicationUser user = userRepository.findById(id)
                 .orElseThrow(() -> new Exception("User not found"));
         userRepository.delete(user);
     }
