@@ -18,8 +18,11 @@ public class Sensor {
     @Column(nullable = false)
     private String sensorName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_id", nullable = false)
+    @Column()
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "device_id", nullable = true)
     @JsonIgnore
     private Device device;
 }

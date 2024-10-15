@@ -1,5 +1,7 @@
 package org.example.sema.service;
 
+import org.example.sema.dtos.CreateSensorDTO;
+import org.example.sema.dtos.UpdateSensorDTO;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.entities.Device;
 import org.example.sema.entities.Sensor;
@@ -35,11 +37,19 @@ public class SensorService {
         }
     }
 
-    public Pair<Optional<Sensor>, String> updateSensorById(Long id, String newName) {
+    public Pair<Optional<Sensor>, String> updateSensorById(Long id, UpdateSensorDTO updateSensorDTO) {
         Optional<Sensor> optionalSensor = sensorRepository.findById(id);
         if (optionalSensor.isPresent()) {
             Sensor sensor = optionalSensor.get();
-            sensor.setSensorName(newName);
+
+            if (updateSensorDTO.getName() != null && !updateSensorDTO.getName().isEmpty()) {
+                sensor.setSensorName(updateSensorDTO.getName());
+            }
+
+            if (updateSensorDTO.getDescription() != null && !updateSensorDTO.getDescription().isEmpty()) {
+                sensor.setDescription(updateSensorDTO.getDescription());
+            }
+
             sensorRepository.save(sensor);
             return Pair.of(Optional.of(sensor), "Sensor updated successfully");
         } else {
@@ -88,11 +98,64 @@ public class SensorService {
         return Pair.of(Optional.of(allSensors), "Sensors retrieved successfully");
     }
 
-    public Pair<Optional<Sensor>, String> addSensor(String sensorName) {
-        Sensor sensor = new Sensor();
-        sensor.setSensorName(sensorName);
-        sensorRepository.save(sensor);
-        return Pair.of(Optional.of(sensor), "Sensor added successfully");
+    public Pair<Optional<Sensor>, String> addSensor(CreateSensorDTO sensorData) {
+        if (sensorRepository.findBySensorName(sensorData.getName()).isEmpty()){
+            Sensor sensor = new Sensor();
+            sensor.setSensorName(sensorData.getName());
+            sensor.setDescription(sensorData.getDescription() != null && !sensorData.getDescription().isEmpty() ? sensorData.getDescription() : "");
+            sensorRepository.save(sensor);
+            return Pair.of(Optional.of(sensorRepository.save(sensor)), "Sensor created");
+        }
+        return Pair.of(Optional.empty(), "Sensor already exists!");
     }
 
+    public Pair<Optional<Device>, String> addSensoreToDevice(Long sensorId, Long deviceId) {
+        Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
+        if (optionalDevice.isEmpty()) {
+            return Pair.of(Optional.empty(), "Device not found");
+        }
+
+        Optional<Sensor> optionalSensor = sensorRepository.findById(sensorId);
+        if (optionalSensor.isEmpty()) {
+            return Pair.of(Optional.empty(), "Sensor not found");
+        }
+
+        Device device = optionalDevice.get();
+        Sensor sensor = optionalSensor.get();
+
+        if (sensor.getDevice()!=null){
+            return Pair.of(Optional.empty(), "Device already assigned to device.");
+        }
+        sensor.setDevice(device);
+        device.getSensors().add(sensor);
+
+        sensorRepository.save(sensor);
+        deviceRepository.save(device);
+
+        return Pair.of(Optional.of(device), "Device added successfully");
+    }
+
+    public Pair<Optional<Sensor>, String> removeSensorFromDevice(Long sensorId, Long deviceId) {
+        Optional<Sensor> optionalSensor = sensorRepository.findById(sensorId);
+        Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
+
+        if (optionalSensor.isEmpty()) {
+            return Pair.of(Optional.empty(), "Sensor not found");
+        }
+
+        if (optionalDevice.isEmpty()) {
+            return Pair.of(Optional.empty(), "Device not found");
+        }
+
+        Sensor sensor = optionalSensor.get();
+        Device device = optionalDevice.get();
+
+        if (device.getSensors().contains(sensor)) {
+            device.getSensors().remove(sensor);
+            deviceRepository.save(device);
+            return Pair.of(Optional.of(sensor), "Sensor removed from device successfully");
+        } else {
+            return Pair.of(Optional.empty(), "Sensor is not associated with this device");
+        }
+    }
 }

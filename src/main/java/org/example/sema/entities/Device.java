@@ -1,6 +1,7 @@
 package org.example.sema.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,10 +22,14 @@ public class Device {
     @Column(nullable = false)
     private String deviceName;
 
+    @Column()
+    private String description;
+
     @ManyToMany(mappedBy = "devices")
     private Set<ApplicationUser> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "device", fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Sensor> sensors = new ArrayList<>();
 
 }

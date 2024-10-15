@@ -5,17 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class UpdateSensorDTO {
-    @Schema(description = "ID of the sensor", example = "123")
-    @NotBlank(message = "ID is required.")
-    private Long id;
-
+public class CreateSensorDTO {
     @Schema(description = "New name for the sensor", example = "new_sensor_name")
+    @NotBlank(message = "Name is required.")
     private String name;
 
     @Schema(description = "Optional description for the sensor", example = "Temperature sensor located in the main room")
     private String description;
-
 }

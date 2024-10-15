@@ -53,13 +53,9 @@ public class AuthenticationService {
         emailService.sendEmail(user.getEmail(), subject, body);
     }
 
-    public boolean resetPassword(String username, Date expiration, String newPassword) {
+    public boolean resetPassword(String username, String newPassword) {
 
         Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
-
-        if (expiration == null || expiration.before(new Date())) {
-            return false;
-        }
 
         if (optionalUser.isEmpty()) {
             return false;

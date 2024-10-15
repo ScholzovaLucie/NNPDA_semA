@@ -7,15 +7,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UpdateDeviceDTO {
-
-    @Schema(description = "ID of the device", example = "123")
-    @NotBlank(message = "ID is required.")
-    private Long id;
-
+public class CreateDeviceDTO {
     @Schema(description = "New name to be set for the device", example = "new_device_name")
+    @NotBlank(message = "Name is required.")
     private String name;
 
-    @Schema(description = "Optional description for the device", example = "Temperature measuring equipment")
-    private String description;
+    @Schema(description = "Optional description for the device", example = "Temperature measuring equipment", defaultValue = "No description")
+    private String description = "";
 }

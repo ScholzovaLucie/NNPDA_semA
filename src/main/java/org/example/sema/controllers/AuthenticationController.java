@@ -11,6 +11,8 @@ import org.example.sema.service.AuthenticationService;
 import org.example.sema.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,7 +63,7 @@ public class AuthenticationController {
 
         String jwtToken = jwtService.generateToken(authenticatedUser.getUsername());
 
-        LoginDTO loginResponse = new LoginDTO().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime());
+        LoginDTO loginResponse = new LoginDTO().setExpiresIn(jwtService.getExpirationTime()).setToken(jwtToken);
 
         return ResponseEntity.ok(loginResponse);
     }
@@ -75,9 +77,9 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "404", description = "User not found")
             }
     )
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO request) {
-        String jwtToken = jwtService.generateToken(request.getUsername());
-        authenticationService.sendPasswordResetToken(request.getUsername(), jwtToken);
+    public ResponseEntity<?> resetPassword(@RequestBody String username) {
+        String jwtToken = jwtService.generateToken(username);
+        authenticationService.sendPasswordResetToken(username, jwtToken);
         return ResponseEntity.ok("Reset token sent to email.");
     }
 
@@ -90,11 +92,11 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "Invalid token or token expired")
             }
     )
-    public ResponseEntity<?> resetPassword(@RequestBody ChangePasswordDTO request) {
-        String token = request.getToken();
-        String username = jwtService.extractUsername(token);
-        Date expiration = jwtService.extractExpiration(token);
-        boolean result = authenticationService.resetPassword(username, expiration, request.getNewPassword());
+    public ResponseEntity<?> setPassword(@RequestBody String newPassword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+        String username = user.getUsername();
+        boolean result = authenticationService.resetPassword(username, newPassword);
         if (result) {
             return ResponseEntity.ok("Password has been successfully reset.");
         } else {

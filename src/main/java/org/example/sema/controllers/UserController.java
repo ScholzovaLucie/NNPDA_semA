@@ -5,28 +5,28 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
+import org.example.sema.dtos.GetByIdDTO;
 import org.example.sema.dtos.RegisterUserDTO;
 import org.example.sema.entities.ApplicationUser;
-import org.example.sema.service.JwtService;
 import org.example.sema.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+@AllArgsConstructor
 @RequestMapping("/users")
 @RestController
 @Tag(name = "User", description = "Info about users.")
 public class UserController {
     private final UserService userService;
-
-    private final JwtService jwtService;
-
-    public UserController(UserService userService, JwtService jwtService) {
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
 
     @GetMapping("/me")
     @Operation(
@@ -38,20 +38,30 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> authenticatedUser(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
+    public ResponseEntity<?> authenticatedUser() {
+        // Gets the authentication of the currently logged in user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); // Retrieves the current authentication object from the security context
+        ApplicationUser user = (ApplicationUser) authentication.getPrincipal(); // Gets the user from the authentication object
+        String username = user.getUsername();
 
-        String username = jwtService.extractUsername(token);
-
-        ApplicationUser user = userService.findUserByUsername(username);
+        user = userService.findUserByUsername(username);
 
         if (user == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-        return ResponseEntity.ok(user);
+        Map<String, Object> responseData = new LinkedHashMap<>();
+        responseData.put("id", user.getId());
+        responseData.put("username", user.getUsername());
+        responseData.put("email", user.getEmail());
+
+        responseData.put("enabled", user.isEnabled());
+        responseData.put("accountNonExpired", user.isAccountNonExpired());
+        responseData.put("accountNonLocked", user.isAccountNonLocked());
+        responseData.put("credentialsNonExpired", user.isCredentialsNonExpired());
+        responseData.put("authorities", user.getAuthorities());
+
+        return ResponseEntity.ok(responseData);
     }
 
     @GetMapping("/all")
@@ -62,7 +72,7 @@ public class UserController {
                     @ApiResponse(responseCode = "200", description = "Users information retrieved successfully", content = @Content(schema = @Schema(implementation = ApplicationUser.class))),
             }
     )
-    public ResponseEntity<?> allUsers(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> allUsers() {
         List<ApplicationUser> users = userService.allUsers();
         return ResponseEntity.ok(users);
     }
@@ -77,7 +87,7 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> updateUser(@RequestBody RegisterUserDTO updateUserRequest, @RequestBody int id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> updateUser(@RequestBody RegisterUserDTO updateUserRequest, @RequestBody int id) {
         try {
             userService.updateUser(id, updateUserRequest);
             return ResponseEntity.ok("User updated successfully");
@@ -96,9 +106,9 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> deleteUser(@RequestBody int id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> deleteUser(@RequestBody GetByIdDTO data) {
         try {
-            userService.deleteUser(id);
+            userService.deleteUser(data.getId());
             return ResponseEntity.ok("User deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete user: " + e.getMessage());
