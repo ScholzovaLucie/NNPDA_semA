@@ -31,6 +31,8 @@ springdoc:
     path: /api-docs
   swagger-ui:
     enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
 server:
   port: 2024
 security:

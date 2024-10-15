@@ -41,8 +41,12 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> getAllSensors() {
-        List<Sensor> sensors = sensorService.getAllSensors();
-        return ResponseEntity.status(HttpStatus.OK).body(sensors);
+        try {
+            List<Sensor> sensors = sensorService.getAllSensors();
+            return ResponseEntity.status(HttpStatus.OK).body(sensors);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping("/me")
@@ -55,22 +59,26 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> getSensorsForUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
-        String username = user.getUsername();
-        Pair<Optional<ApplicationUser>, String> userResult = sensorService.getUserByUsername(username);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+            String username = user.getUsername();
+            Pair<Optional<ApplicationUser>, String> userResult = sensorService.getUserByUsername(username);
 
-        if (userResult.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userResult.getSecond());
+            if (userResult.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userResult.getSecond());
+            }
+
+            user = userResult.getFirst().get();
+            Pair<Optional<List<Sensor>>, String> result = sensorService.getSensorsByUser(user);
+
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        user = userResult.getFirst().get();
-        Pair<Optional<List<Sensor>>, String> result = sensorService.getSensorsByUser(user);
-
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
     }
 
     @GetMapping("/device/")
@@ -83,11 +91,15 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> getSensorsForDevice(@RequestParam("device_id") Long deviceId) {
-        List<Sensor> sensors = sensorService.getSensorsByDevice(deviceId);
-        if (sensors.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found or no sensors found");
+        try {
+            List<Sensor> sensors = sensorService.getSensorsByDevice(deviceId);
+            if (sensors.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found or no sensors found");
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(sensors);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.OK).body(sensors);
     }
 
     @PostMapping("/")
@@ -100,8 +112,12 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> addSensor(@RequestBody CreateSensorDTO sensorData) {
-        Pair<Optional<Sensor>, String> result = sensorService.addSensor(sensorData);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result.getSecond());
+        try {
+            Pair<Optional<Sensor>, String> result = sensorService.addSensor(sensorData);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping("/assign")
@@ -115,13 +131,17 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> addSensorToDevise(@RequestBody AssignSensorDTO data) {
-        Pair<Optional<Device>, String> result = sensorService.addSensoreToDevice(data.getSensorId(), data.getDeviceId());
+        try {
+            Pair<Optional<Device>, String> result = sensorService.addSensoreToDevice(data.getSensorId(), data.getDeviceId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
     @PutMapping("/")
@@ -134,12 +154,16 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> updateSensorByDeviceAndSensorName(@RequestBody UpdateSensorDTO sensorData) {
-        Pair<Optional<Sensor>, String> result = sensorService.updateSensorById(sensorData.getId(), sensorData);
+        try {
+            Pair<Optional<Sensor>, String> result = sensorService.updateSensorById(sensorData.getId(), sensorData);
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
     @DeleteMapping("/")
@@ -152,12 +176,16 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> deleteSensor(@RequestBody GetByIdDTO data) {
-        Pair<Optional<Sensor>, String> result = sensorService.deleteSensorById(data.getId());
+        try {
+            Pair<Optional<Sensor>, String> result = sensorService.deleteSensorById(data.getId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
     @DeleteMapping("/remove")
@@ -171,12 +199,16 @@ public class SensorController {
             }
     )
     public ResponseEntity<?> removeSensorFromDevice(@RequestBody AssignSensorDTO data) {
-        Pair<Optional<Sensor>, String> result = sensorService.removeSensorFromDevice(data.getSensorId(), data.getDeviceId());
+        try {
+            Pair<Optional<Sensor>, String> result = sensorService.removeSensorFromDevice(data.getSensorId(), data.getDeviceId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 }

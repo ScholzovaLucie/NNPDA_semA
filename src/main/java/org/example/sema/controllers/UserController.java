@@ -39,29 +39,33 @@ public class UserController {
             }
     )
     public ResponseEntity<?> authenticatedUser() {
-        // Gets the authentication of the currently logged in user
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); // Retrieves the current authentication object from the security context
-        ApplicationUser user = (ApplicationUser) authentication.getPrincipal(); // Gets the user from the authentication object
-        String username = user.getUsername();
+        try {
+            // Gets the authentication of the currently logged in user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); // Retrieves the current authentication object from the security context
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal(); // Gets the user from the authentication object
+            String username = user.getUsername();
 
-        user = userService.findUserByUsername(username);
+            user = userService.findUserByUsername(username);
 
-        if (user == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            Map<String, Object> responseData = new LinkedHashMap<>();
+            responseData.put("id", user.getId());
+            responseData.put("username", user.getUsername());
+            responseData.put("email", user.getEmail());
+
+            responseData.put("enabled", user.isEnabled());
+            responseData.put("accountNonExpired", user.isAccountNonExpired());
+            responseData.put("accountNonLocked", user.isAccountNonLocked());
+            responseData.put("credentialsNonExpired", user.isCredentialsNonExpired());
+            responseData.put("authorities", user.getAuthorities());
+
+            return ResponseEntity.ok(responseData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        Map<String, Object> responseData = new LinkedHashMap<>();
-        responseData.put("id", user.getId());
-        responseData.put("username", user.getUsername());
-        responseData.put("email", user.getEmail());
-
-        responseData.put("enabled", user.isEnabled());
-        responseData.put("accountNonExpired", user.isAccountNonExpired());
-        responseData.put("accountNonLocked", user.isAccountNonLocked());
-        responseData.put("credentialsNonExpired", user.isCredentialsNonExpired());
-        responseData.put("authorities", user.getAuthorities());
-
-        return ResponseEntity.ok(responseData);
     }
 
     @GetMapping("/all")
@@ -73,8 +77,12 @@ public class UserController {
             }
     )
     public ResponseEntity<?> allUsers() {
-        List<ApplicationUser> users = userService.allUsers();
-        return ResponseEntity.ok(users);
+        try {
+            List<ApplicationUser> users = userService.allUsers();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/")

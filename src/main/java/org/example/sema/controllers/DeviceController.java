@@ -46,11 +46,15 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> createDevice(@RequestBody CreateDeviceDTO deviceData) {
-        Pair<Optional<Device>, String> device = deviceService.createDevice(deviceData);
-        if (device.getFirst().isPresent()){
-            return ResponseEntity.status(HttpStatus.CREATED).body(device.getSecond());
+        try {
+            Pair<Optional<Device>, String> device = deviceService.createDevice(deviceData);
+            if (device.getFirst().isPresent()) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(device.getSecond());
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(device.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(device.getSecond());
     }
 
     @PostMapping("/assign")
@@ -64,13 +68,17 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> addDeviceToUser(@RequestBody AssignDeviceDTO data) {
-        Pair<Optional<Device>, String> result = deviceService.addDeviceToUser(data.getDeviceId(), data.getUserId());
+        try {
+            Pair<Optional<Device>, String> result = deviceService.addDeviceToUser(data.getDeviceId(), data.getUserId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
 
@@ -83,13 +91,17 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> getAllDevices() {
-        Pair<Optional<List<Device>>, String> result = deviceService.getAllDevices();
+        try {
+            Pair<Optional<List<Device>>, String> result = deviceService.getAllDevices();
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
     }
 
     @GetMapping("/me")
@@ -102,16 +114,20 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> getMyDevices() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
-        String username = user.getUsername();
-        Pair<Optional<List<Device>>, String> result = deviceService.getDevicesForUser(username);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+            String username = user.getUsername();
+            Pair<Optional<List<Device>>, String> result = deviceService.getDevicesForUser(username);
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
     }
 
     @PutMapping("/")
@@ -124,13 +140,17 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> updateDeviceByName(@RequestBody UpdateDeviceDTO deviceData) {
-        Pair<Optional<Device>, String> result = deviceService.updateDeviceById(deviceData.getId(), deviceData);
+        try {
+            Pair<Optional<Device>, String> result = deviceService.updateDeviceById(deviceData.getId(), deviceData);
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
     @DeleteMapping("/")
@@ -143,13 +163,17 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> deleteDeviceByName(@RequestBody GetByIdDTO data) {
-        Pair<Optional<Device>, String> result = deviceService.deleteDeviceById(data.getId());
+        try {
+            Pair<Optional<Device>, String> result = deviceService.deleteDeviceById(data.getId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 
     @DeleteMapping("/remove")
@@ -163,12 +187,16 @@ public class DeviceController {
             }
     )
     public ResponseEntity<?> removeDeviceFromUser(@RequestBody AssignDeviceDTO data) {
-        Pair<Optional<Device>, String> result = deviceService.removeDeviceFromUser(data.getDeviceId(), data.getUserId());
+        try {
+            Pair<Optional<Device>, String> result = deviceService.removeDeviceFromUser(data.getDeviceId(), data.getUserId());
 
-        if (result.getFirst().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getFirst().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            }
+
+            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
     }
 }

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.example.sema.dtos.*;
 import org.example.sema.entities.ApplicationUser;
 import org.example.sema.service.AuthenticationService;
@@ -23,16 +24,12 @@ import java.util.Date;
 
 @RequestMapping("/auth")
 @RestController
+@AllArgsConstructor
 @Tag(name = "Authentication", description = "Manage users.")
 public class AuthenticationController {
     private final JwtService jwtService;
 
     private final AuthenticationService authenticationService;
-
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
-        this.jwtService = jwtService;
-        this.authenticationService = authenticationService;
-    }
 
     @PostMapping("/signup")
     @Operation(
@@ -44,9 +41,13 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<?> register(@RequestBody RegisterUserDTO registerUserDto) {
-        ApplicationUser registeredUser = authenticationService.signup(registerUserDto);
+        try {
+            ApplicationUser registeredUser = authenticationService.signup(registerUserDto);
 
-        return ResponseEntity.ok(registeredUser);
+            return ResponseEntity.ok(registeredUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
@@ -59,13 +60,17 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<?> authenticate(@RequestBody LoginUserDTO loginUserDto) {
-        ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
+        try {
+            ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
 
-        String jwtToken = jwtService.generateToken(authenticatedUser.getUsername());
+            String jwtToken = jwtService.generateToken(authenticatedUser.getUsername());
 
-        LoginDTO loginResponse = new LoginDTO().setExpiresIn(jwtService.getExpirationTime()).setToken(jwtToken);
+            LoginDTO loginResponse = new LoginDTO().setExpiresIn(jwtService.getExpirationTime()).setToken(jwtToken);
 
-        return ResponseEntity.ok(loginResponse);
+            return ResponseEntity.ok(loginResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping("/reset-password")
@@ -78,9 +83,13 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<?> resetPassword(@RequestBody String username) {
-        String jwtToken = jwtService.generateToken(username);
-        authenticationService.sendPasswordResetToken(username, jwtToken);
-        return ResponseEntity.ok("Reset token sent to email.");
+        try {
+            String jwtToken = jwtService.generateToken(username);
+            authenticationService.sendPasswordResetToken(username, jwtToken);
+            return ResponseEntity.ok("Reset token sent to email.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping("/set-password")
@@ -93,14 +102,18 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<?> setPassword(@RequestBody String newPassword) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
-        String username = user.getUsername();
-        boolean result = authenticationService.resetPassword(username, newPassword);
-        if (result) {
-            return ResponseEntity.ok("Password has been successfully reset.");
-        } else {
-            return ResponseEntity.badRequest().body("Invalid token or token expired.");
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+            String username = user.getUsername();
+            boolean result = authenticationService.resetPassword(username, newPassword);
+            if (result) {
+                return ResponseEntity.ok("Password has been successfully reset.");
+            } else {
+                return ResponseEntity.badRequest().body("Invalid token or token expired.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
