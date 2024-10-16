@@ -1,13 +1,14 @@
-package org.example.sema.controllers;
+package org.example.sema.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.example.sema.dtos.*;
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.dto.*;
+import org.example.sema.entity.ApplicationUser;
 import org.example.sema.service.AuthenticationService;
 import org.example.sema.service.JwtService;
 import org.springframework.http.HttpStatus;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Date;
 
 
 @RequestMapping("/auth")
@@ -40,7 +39,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "Bad Request")
             }
     )
-    public ResponseEntity<?> register(@RequestBody RegisterUserDTO registerUserDto) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterUserDTO registerUserDto) {
         try {
             ApplicationUser registeredUser = authenticationService.signup(registerUserDto);
 
@@ -59,7 +58,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials")
             }
     )
-    public ResponseEntity<?> authenticate(@RequestBody LoginUserDTO loginUserDto) {
+    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginUserDTO loginUserDto) {
         try {
             ApplicationUser authenticatedUser = authenticationService.authenticate(loginUserDto);
 
@@ -82,7 +81,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "404", description = "User not found")
             }
     )
-    public ResponseEntity<?> resetPassword(@RequestBody String username) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody String username) {
         try {
             String jwtToken = jwtService.generateToken(username);
             authenticationService.sendPasswordResetToken(username, jwtToken);
@@ -101,7 +100,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "Invalid token or token expired")
             }
     )
-    public ResponseEntity<?> setPassword(@RequestBody String newPassword) {
+    public ResponseEntity<?> setPassword(@Valid @RequestBody String newPassword) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
@@ -126,7 +125,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "Invalid old password or other error")
             }
     )
-    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeDto passwordChangeRequest) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody PasswordChangeDto passwordChangeRequest) {
         try {
             authenticationService.changePassword(
                     passwordChangeRequest.getUsername(),

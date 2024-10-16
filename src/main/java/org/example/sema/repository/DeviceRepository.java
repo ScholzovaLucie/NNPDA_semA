@@ -1,7 +1,7 @@
 package org.example.sema.repository;
 
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
+import org.example.sema.entity.ApplicationUser;
+import org.example.sema.entity.Device;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,12 +1,10 @@
 package org.example.sema.repository;
 
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
-import org.example.sema.entities.Sensor;
+import org.example.sema.entity.Device;
+import org.example.sema.entity.Sensor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 

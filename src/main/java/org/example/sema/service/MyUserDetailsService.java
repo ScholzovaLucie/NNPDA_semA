@@ -1,6 +1,6 @@
 package org.example.sema.service;
 
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

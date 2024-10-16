@@ -1,15 +1,14 @@
 package org.example.sema.service;
 
-import jakarta.validation.constraints.NotBlank;
-import org.example.sema.dtos.CreateDeviceDTO;
-import org.example.sema.dtos.UpdateDeviceDTO;
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
-import org.example.sema.entities.Sensor;
+import org.example.sema.dto.CreateDeviceDTO;
+import org.example.sema.dto.UpdateDeviceDTO;
+import org.example.sema.entity.ApplicationUser;
+import org.example.sema.entity.Device;
+import org.example.sema.entity.Sensor;
 import org.example.sema.repository.DeviceRepository;
 import org.example.sema.repository.SensorRepository;
 import org.example.sema.repository.UserRepository;
-import org.springframework.data.util.Pair;
+import org.example.sema.response.ServiceResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,29 +29,29 @@ public class DeviceService {
     @Autowired
     private UserRepository userRepository;
 
-    public Pair<Optional<Device>, String> createDevice(CreateDeviceDTO deviceData) {
+    public ServiceResponse<Device> createDevice(CreateDeviceDTO deviceData) {
         if (deviceRepository.findByDeviceName(deviceData.getName()).isEmpty()){
             Device device = new Device();
             device.setDeviceName(deviceData.getName());
             device.setDescription(deviceData.getDescription() != null && !deviceData.getDescription().isEmpty() ? deviceData.getDescription() : "");
             device.setSensors(new ArrayList<>());
             deviceRepository.save(device);
-            return Pair.of(Optional.of(deviceRepository.save(device)), "Device created");
+            return new ServiceResponse<>(deviceRepository.save(device), "Device created");
         }
-        return Pair.of(Optional.empty(), "Device already exists!");
+        return new ServiceResponse<>(null, "Device already exists!");
     }
 
-    public Pair<Optional<Device>, String> addDeviceToUser(Long deviceId, Long userId) {
+    public ServiceResponse<Device> addDeviceToUser(Long deviceId, Long userId) {
         Optional<ApplicationUser> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
-            return Pair.of(Optional.empty(), "User not found");
+            return new ServiceResponse<>(null, "User not found");
         }
 
         ApplicationUser user = optionalUser.get();
 
         Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
         if (optionalDevice.isEmpty()) {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
 
         Device device = optionalDevice.get();
@@ -62,36 +61,36 @@ public class DeviceService {
         userRepository.save(user);
         deviceRepository.save(device);
 
-        return Pair.of(Optional.of(device), "Device added successfully");
+        return new ServiceResponse<>(device, "Device added successfully");
     }
 
-    public Pair<Optional<List<Device>>, String> getAllDevices() {
+    public ServiceResponse<List<Device>> getAllDevices() {
         List<Device> devices = deviceRepository.findAll();
 
         if (devices.isEmpty()) {
-            return Pair.of(Optional.empty(), "No devices found");
+            return new ServiceResponse<>(null, "No devices found");
         }
 
-        return Pair.of(Optional.of(devices), "Devices retrieved successfully");
+        return new ServiceResponse<>(devices, "Devices retrieved successfully");
     }
 
-    public Pair<Optional<List<Device>>, String> getDevicesForUser(String username) {
+    public ServiceResponse<List<Device>> getDevicesForUser(String username) {
         Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
-            return Pair.of(Optional.empty(), "User not found");
+            return new ServiceResponse<>(null, "User not found");
         }
 
         ApplicationUser user = optionalUser.get();
         List<Device> devices = deviceRepository.findByUsers(user);
 
         if (devices.isEmpty()) {
-            return Pair.of(Optional.empty(), "No devices found for user");
+            return new ServiceResponse<>(null, "No devices found for user");
         }
 
-        return Pair.of(Optional.of(devices), "Devices retrieved successfully");
+        return new ServiceResponse<>(devices, "Devices retrieved successfully");
     }
 
-    public Pair<Optional<Device>, String> updateDeviceById(Long id, UpdateDeviceDTO updateDeviceDTO) {
+    public ServiceResponse<Device> updateDeviceById(Long id, UpdateDeviceDTO updateDeviceDTO) {
         Optional<Device> optionalDevice = deviceRepository.findById(id);
 
         if (optionalDevice.isPresent()) {
@@ -106,13 +105,13 @@ public class DeviceService {
             }
 
             deviceRepository.save(device);
-            return Pair.of(Optional.of(device), "Device updated successfully");
+            return new ServiceResponse<>(device, "Device updated successfully");
         } else {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
     }
 
-    public Pair<Optional<Device>, String> deleteDeviceById(Long id) {
+    public ServiceResponse<Device> deleteDeviceById(Long id) {
         Optional<Device> optionalDevice = deviceRepository.findById(id);
         if (optionalDevice.isPresent()) {
             Device device = optionalDevice.get();
@@ -130,22 +129,22 @@ public class DeviceService {
             }
 
             deviceRepository.delete(device);
-            return Pair.of(optionalDevice, "Device deleted successfully");
+            return new ServiceResponse<>(optionalDevice.get(), "Device deleted successfully");
         } else {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
     }
 
-    public Pair<Optional<Device>, String> removeDeviceFromUser(Long deviceId, Long userId) {
+    public ServiceResponse<Device> removeDeviceFromUser(Long deviceId, Long userId) {
         Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
         Optional<ApplicationUser> optionalUser = userRepository.findById(userId);
 
         if (optionalDevice.isEmpty()) {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
 
         if (optionalUser.isEmpty()) {
-            return Pair.of(Optional.empty(), "User not found");
+            return new ServiceResponse<>(null, "User not found");
         }
 
         Device device = optionalDevice.get();
@@ -154,9 +153,9 @@ public class DeviceService {
         if (user.getDevices().contains(device)) {
             user.getDevices().remove(device);
             userRepository.save(user);
-            return Pair.of(Optional.of(device), "Device removed from user successfully");
+            return new ServiceResponse<>(device, "Device removed from user successfully");
         } else {
-            return Pair.of(Optional.empty(), "Device is not associated with this user");
+            return new ServiceResponse<>(null, "Device is not associated with this user");
         }
     }
 }

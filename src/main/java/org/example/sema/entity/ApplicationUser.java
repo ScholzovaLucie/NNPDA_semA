@@ -1,4 +1,4 @@
-package org.example.sema.entities;
+package org.example.sema.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;

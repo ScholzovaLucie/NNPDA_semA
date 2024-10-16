@@ -1,4 +1,4 @@
-package org.example.sema.controllers;
+package org.example.sema.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -6,17 +6,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.example.sema.dtos.AssignDeviceDTO;
-import org.example.sema.dtos.CreateDeviceDTO;
-import org.example.sema.dtos.GetByIdDTO;
-import org.example.sema.dtos.UpdateDeviceDTO;
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
+import org.example.sema.dto.AssignDeviceDTO;
+import org.example.sema.dto.CreateDeviceDTO;
+import org.example.sema.dto.GetByIdDTO;
+import org.example.sema.dto.UpdateDeviceDTO;
+import org.example.sema.entity.ApplicationUser;
+import org.example.sema.entity.Device;
+import org.example.sema.response.ServiceResponse;
 import org.example.sema.service.DeviceService;
-import org.example.sema.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,7 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @AllArgsConstructor
@@ -45,13 +44,13 @@ public class DeviceController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> createDevice(@RequestBody CreateDeviceDTO deviceData) {
+    public ResponseEntity<?> createDevice(@Valid @RequestBody CreateDeviceDTO deviceData) {
         try {
-            Pair<Optional<Device>, String> device = deviceService.createDevice(deviceData);
-            if (device.getFirst().isPresent()) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(device.getSecond());
+            ServiceResponse<Device> result = deviceService.createDevice(deviceData);
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(result.getMessage());
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(device.getSecond());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -67,15 +66,15 @@ public class DeviceController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> addDeviceToUser(@RequestBody AssignDeviceDTO data) {
+    public ResponseEntity<?> addDeviceToUser(@Valid @RequestBody AssignDeviceDTO data) {
         try {
-            Pair<Optional<Device>, String> result = deviceService.addDeviceToUser(data.getDeviceId(), data.getUserId());
+            ServiceResponse<Device> result = deviceService.addDeviceToUser(data.getDeviceId(), data.getUserId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -92,13 +91,13 @@ public class DeviceController {
     )
     public ResponseEntity<?> getAllDevices() {
         try {
-            Pair<Optional<List<Device>>, String> result = deviceService.getAllDevices();
+            ServiceResponse<List<Device>> result = deviceService.getAllDevices();
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getData());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -118,13 +117,13 @@ public class DeviceController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
             String username = user.getUsername();
-            Pair<Optional<List<Device>>, String> result = deviceService.getDevicesForUser(username);
+            ServiceResponse<List<Device>> result = deviceService.getDevicesForUser(username);
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getData());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -139,15 +138,15 @@ public class DeviceController {
                     @ApiResponse(responseCode = "404", description = "Device or user not found")
             }
     )
-    public ResponseEntity<?> updateDeviceByName(@RequestBody UpdateDeviceDTO deviceData) {
+    public ResponseEntity<?> updateDeviceByName(@Valid @RequestBody UpdateDeviceDTO deviceData) {
         try {
-            Pair<Optional<Device>, String> result = deviceService.updateDeviceById(deviceData.getId(), deviceData);
+            ServiceResponse<Device> result = deviceService.updateDeviceById(deviceData.getId(), deviceData);
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -162,15 +161,15 @@ public class DeviceController {
                     @ApiResponse(responseCode = "404", description = "Device or user not found")
             }
     )
-    public ResponseEntity<?> deleteDeviceByName(@RequestBody GetByIdDTO data) {
+    public ResponseEntity<?> deleteDeviceByName(@Valid @RequestBody GetByIdDTO data) {
         try {
-            Pair<Optional<Device>, String> result = deviceService.deleteDeviceById(data.getId());
+            ServiceResponse<Device> result = deviceService.deleteDeviceById(data.getId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -186,15 +185,15 @@ public class DeviceController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> removeDeviceFromUser(@RequestBody AssignDeviceDTO data) {
+    public ResponseEntity<?> removeDeviceFromUser(@Valid @RequestBody AssignDeviceDTO data) {
         try {
-            Pair<Optional<Device>, String> result = deviceService.removeDeviceFromUser(data.getDeviceId(), data.getUserId());
+            ServiceResponse<Device> result = deviceService.removeDeviceFromUser(data.getDeviceId(), data.getUserId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

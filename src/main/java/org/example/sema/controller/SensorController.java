@@ -1,20 +1,19 @@
-package org.example.sema.controllers;
+package org.example.sema.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.User;
-import org.example.sema.dtos.*;
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
-import org.example.sema.entities.Sensor;
-import org.example.sema.service.JwtService;
+import org.example.sema.dto.*;
+import org.example.sema.entity.ApplicationUser;
+import org.example.sema.entity.Device;
+import org.example.sema.entity.Sensor;
+import org.example.sema.response.ServiceResponse;
 import org.example.sema.service.SensorService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -63,19 +62,19 @@ public class SensorController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
             String username = user.getUsername();
-            Pair<Optional<ApplicationUser>, String> userResult = sensorService.getUserByUsername(username);
+            ServiceResponse<ApplicationUser> userResult = sensorService.getUserByUsername(username);
 
-            if (userResult.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userResult.getSecond());
+            if (userResult.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userResult.getMessage());
             }
 
-            user = userResult.getFirst().get();
-            Pair<Optional<List<Sensor>>, String> result = sensorService.getSensorsByUser(user);
+            user = userResult.getData();
+            ServiceResponse<List<Sensor>> result = sensorService.getSensorsByUser(user);
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
-            return ResponseEntity.status(HttpStatus.OK).body(result.getFirst().get());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getData());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -90,10 +89,10 @@ public class SensorController {
                     @ApiResponse(responseCode = "404", description = "Device not found")
             }
     )
-    public ResponseEntity<?> getSensorsForDevice(@RequestParam("device_id") Long deviceId) {
+    public ResponseEntity<?> getSensorsForDevice(@Valid @RequestParam("device_id") Long deviceId) {
         try {
             List<Sensor> sensors = sensorService.getSensorsByDevice(deviceId);
-            if (sensors.isEmpty()) {
+            if (sensors == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found or no sensors found");
             }
             return ResponseEntity.status(HttpStatus.OK).body(sensors);
@@ -111,10 +110,10 @@ public class SensorController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> addSensor(@RequestBody CreateSensorDTO sensorData) {
+    public ResponseEntity<?> addSensor(@Valid @RequestBody CreateSensorDTO sensorData) {
         try {
-            Pair<Optional<Sensor>, String> result = sensorService.addSensor(sensorData);
-            return ResponseEntity.status(HttpStatus.CREATED).body(result.getSecond());
+            ServiceResponse<Sensor> result = sensorService.addSensor(sensorData);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -130,15 +129,15 @@ public class SensorController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> addSensorToDevise(@RequestBody AssignSensorDTO data) {
+    public ResponseEntity<?> addSensorToDevise(@Valid @RequestBody AssignSensorDTO data) {
         try {
-            Pair<Optional<Device>, String> result = sensorService.addSensoreToDevice(data.getSensorId(), data.getDeviceId());
+            ServiceResponse<Device> result = sensorService.addSensoreToDevice(data.getSensorId(), data.getDeviceId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -153,14 +152,14 @@ public class SensorController {
                     @ApiResponse(responseCode = "404", description = "Sensor not found")
             }
     )
-    public ResponseEntity<?> updateSensorByDeviceAndSensorName(@RequestBody UpdateSensorDTO sensorData) {
+    public ResponseEntity<?> updateSensorByDeviceAndSensorName(@Valid @RequestBody UpdateSensorDTO sensorData) {
         try {
-            Pair<Optional<Sensor>, String> result = sensorService.updateSensorById(sensorData.getId(), sensorData);
+            ServiceResponse<Sensor> result = sensorService.updateSensorById(sensorData.getId(), sensorData);
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -175,14 +174,14 @@ public class SensorController {
                     @ApiResponse(responseCode = "404", description = "Sensor not found")
             }
     )
-    public ResponseEntity<?> deleteSensor(@RequestBody GetByIdDTO data) {
+    public ResponseEntity<?> deleteSensor(@Valid @RequestBody GetByIdDTO data) {
         try {
-            Pair<Optional<Sensor>, String> result = sensorService.deleteSensorById(data.getId());
+            ServiceResponse<Sensor> result = sensorService.deleteSensorById(data.getId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -198,15 +197,15 @@ public class SensorController {
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid input")
             }
     )
-    public ResponseEntity<?> removeSensorFromDevice(@RequestBody AssignSensorDTO data) {
+    public ResponseEntity<?> removeSensorFromDevice(@Valid @RequestBody AssignSensorDTO data) {
         try {
-            Pair<Optional<Sensor>, String> result = sensorService.removeSensorFromDevice(data.getSensorId(), data.getDeviceId());
+            ServiceResponse<Sensor> result = sensorService.removeSensorFromDevice(data.getSensorId(), data.getDeviceId());
 
-            if (result.getFirst().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getSecond());
+            if (result.getData() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(result.getSecond());
+            return ResponseEntity.status(HttpStatus.OK).body(result.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

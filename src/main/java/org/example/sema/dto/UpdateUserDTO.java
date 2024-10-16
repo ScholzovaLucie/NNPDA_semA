@@ -1,23 +1,22 @@
-package org.example.sema.dtos;
+package org.example.sema.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class RegisterUserDTO {
+public class UpdateUserDTO {
+    @Schema(description = "Id of user", example = "10")
+    @NotBlank(message = "Id is required.")
+    private Long id;
 
     @Schema(description = "Username for registration", example = "new_user123")
-    @NotBlank(message = "Username is required.")
     private String username;
 
-    @Schema(description = "Password for registration", example = "password123")
-    @NotBlank(message = "Password is required.")
-    private String password;
-
     @Schema(description = "Email address of the user", example = "user@example.com")
-    @NotBlank(message = "Email is required.")
     private String email;
 }

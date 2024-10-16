@@ -1,14 +1,13 @@
 package org.example.sema.service;
 
-import org.example.sema.dtos.LoginUserDTO;
-import org.example.sema.dtos.RegisterUserDTO;
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.dto.LoginUserDTO;
+import org.example.sema.dto.RegisterUserDTO;
+import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.ApplicationUserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Optional;
 
 

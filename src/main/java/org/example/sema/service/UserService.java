@@ -1,7 +1,7 @@
 package org.example.sema.service;
 
-import org.example.sema.dtos.RegisterUserDTO;
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.dto.UpdateUserDTO;
+import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +23,12 @@ public class UserService {
 
     }
 
-    public ApplicationUser findUserById(int id) {
-        Optional<ApplicationUser> optionalUser = userRepository.findById(id);
-
-        return optionalUser.orElse(null);
-
-    }
-
     public List<ApplicationUser> allUsers(){
         return (List<ApplicationUser>) userRepository.findAll();
     }
 
-    public void updateUser(int id, RegisterUserDTO updatedUserDto) throws Exception {
-        ApplicationUser user = userRepository.findById(id)
+    public void updateUser(UpdateUserDTO updatedUserDto) throws Exception {
+        ApplicationUser user = userRepository.findById(updatedUserDto.getId())
                 .orElseThrow(() -> new Exception("User not found"));
 
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
@@ -44,10 +37,6 @@ public class UserService {
 
         if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty()) {
             user.setEmail(updatedUserDto.getEmail());
-        }
-
-        if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
-            user.setPassword(updatedUserDto.getPassword());
         }
 
         userRepository.save(user);

@@ -1,6 +1,6 @@
 package org.example.sema.repository;
 
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.entity.ApplicationUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

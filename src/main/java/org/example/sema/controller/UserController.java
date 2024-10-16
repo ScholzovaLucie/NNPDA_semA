@@ -1,14 +1,15 @@
-package org.example.sema.controllers;
+package org.example.sema.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.example.sema.dtos.GetByIdDTO;
-import org.example.sema.dtos.RegisterUserDTO;
-import org.example.sema.entities.ApplicationUser;
+import org.example.sema.dto.GetByIdDTO;
+import org.example.sema.dto.UpdateUserDTO;
+import org.example.sema.entity.ApplicationUser;
 import org.example.sema.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,9 +95,9 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> updateUser(@RequestBody RegisterUserDTO updateUserRequest, @RequestBody int id) {
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserDTO updateUserRequest) {
         try {
-            userService.updateUser(id, updateUserRequest);
+            userService.updateUser(updateUserRequest);
             return ResponseEntity.ok("User updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update user: " + e.getMessage());
@@ -114,7 +114,7 @@ public class UserController {
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
             }
     )
-    public ResponseEntity<?> deleteUser(@RequestBody GetByIdDTO data) {
+    public ResponseEntity<?> deleteUser(@Valid @RequestBody GetByIdDTO data) {
         try {
             userService.deleteUser(data.getId());
             return ResponseEntity.ok("User deleted successfully");

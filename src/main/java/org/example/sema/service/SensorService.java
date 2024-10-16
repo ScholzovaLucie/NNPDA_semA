@@ -1,15 +1,15 @@
 package org.example.sema.service;
 
-import org.example.sema.dtos.CreateSensorDTO;
-import org.example.sema.dtos.UpdateSensorDTO;
-import org.example.sema.entities.ApplicationUser;
-import org.example.sema.entities.Device;
-import org.example.sema.entities.Sensor;
+import org.example.sema.dto.CreateSensorDTO;
+import org.example.sema.dto.UpdateSensorDTO;
+import org.example.sema.entity.ApplicationUser;
+import org.example.sema.entity.Device;
+import org.example.sema.entity.Sensor;
 import org.example.sema.repository.DeviceRepository;
 import org.example.sema.repository.SensorRepository;
 import org.example.sema.repository.UserRepository;
+import org.example.sema.response.ServiceResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -27,17 +27,17 @@ public class SensorService {
     @Autowired
     private UserRepository userRepository;
 
-    public Pair<Optional<Sensor>, String> deleteSensorById(Long id) {
+    public ServiceResponse<Sensor> deleteSensorById(Long id) {
         Optional<Sensor> optionalSensor = sensorRepository.findById(id);
         if (optionalSensor.isPresent()) {
             sensorRepository.delete(optionalSensor.get());
-            return Pair.of(optionalSensor, "Sensor deleted successfully");
+            return new ServiceResponse<>(optionalSensor.get(), "Sensor deleted successfully");
         } else {
-            return Pair.of(Optional.empty(), "Sensor not found");
+            return new ServiceResponse<>(null, "Sensor not found");
         }
     }
 
-    public Pair<Optional<Sensor>, String> updateSensorById(Long id, UpdateSensorDTO updateSensorDTO) {
+    public ServiceResponse<Sensor> updateSensorById(Long id, UpdateSensorDTO updateSensorDTO) {
         Optional<Sensor> optionalSensor = sensorRepository.findById(id);
         if (optionalSensor.isPresent()) {
             Sensor sensor = optionalSensor.get();
@@ -51,9 +51,9 @@ public class SensorService {
             }
 
             sensorRepository.save(sensor);
-            return Pair.of(Optional.of(sensor), "Sensor updated successfully");
+            return new ServiceResponse<>(sensor, "Sensor updated successfully");
         } else {
-            return Pair.of(Optional.empty(), "Sensor not found");
+            return new ServiceResponse<>(null, "Sensor not found");
         }
     }
 
@@ -69,62 +69,60 @@ public class SensorService {
         return sensorRepository.findAll();
     }
 
-    public Pair<Optional<ApplicationUser>, String> getUserByUsername(String username) {
+    public ServiceResponse<ApplicationUser> getUserByUsername(String username) {
         Optional<ApplicationUser> user = userRepository.findByUsername(username);
-        return user.map(u -> Pair.of(Optional.of(u), "User found"))
-                .orElseGet(() -> Pair.of(Optional.empty(), "User not found"));
+        return user.map(u -> new ServiceResponse<>(u, "User found"))
+                .orElseGet(() ->new ServiceResponse<>(null, "User not found"));
     }
 
-    public Pair<Optional<List<Sensor>>, String> getSensorsByUser(ApplicationUser user) {
+    public ServiceResponse<List<Sensor>> getSensorsByUser(ApplicationUser user) {
         List<Device> devices = deviceRepository.findByUsers(user);
 
         if (devices.isEmpty()) {
-            return Pair.of(Optional.empty(), "No devices found for this user");
+            return new ServiceResponse<>(null, "No devices found for this user");
         }
 
-        // Seznam všech senzorů
         List<Sensor> allSensors = new ArrayList<>();
 
-        // Projdeme každé zařízení a přidáme jeho senzory do seznamu
         for (Device device : devices) {
             List<Sensor> sensors = sensorRepository.findByDevice(device);
             allSensors.addAll(sensors);
         }
 
         if (allSensors.isEmpty()) {
-            return Pair.of(Optional.empty(), "No sensors found for the user's devices");
+            return new ServiceResponse<>(null, "No sensors found for the user's devices");
         }
 
-        return Pair.of(Optional.of(allSensors), "Sensors retrieved successfully");
+        return new ServiceResponse<>(allSensors, "Sensors retrieved successfully");
     }
 
-    public Pair<Optional<Sensor>, String> addSensor(CreateSensorDTO sensorData) {
+    public ServiceResponse<Sensor> addSensor(CreateSensorDTO sensorData) {
         if (sensorRepository.findBySensorName(sensorData.getName()).isEmpty()){
             Sensor sensor = new Sensor();
             sensor.setSensorName(sensorData.getName());
             sensor.setDescription(sensorData.getDescription() != null && !sensorData.getDescription().isEmpty() ? sensorData.getDescription() : "");
             sensorRepository.save(sensor);
-            return Pair.of(Optional.of(sensorRepository.save(sensor)), "Sensor created");
+            return new ServiceResponse<>(sensorRepository.save(sensor), "Sensor created");
         }
-        return Pair.of(Optional.empty(), "Sensor already exists!");
+        return new ServiceResponse<>(null, "Sensor already exists!");
     }
 
-    public Pair<Optional<Device>, String> addSensoreToDevice(Long sensorId, Long deviceId) {
+    public ServiceResponse<Device> addSensoreToDevice(Long sensorId, Long deviceId) {
         Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
         if (optionalDevice.isEmpty()) {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
 
         Optional<Sensor> optionalSensor = sensorRepository.findById(sensorId);
         if (optionalSensor.isEmpty()) {
-            return Pair.of(Optional.empty(), "Sensor not found");
+            return new ServiceResponse<>(null, "Sensor not found");
         }
 
         Device device = optionalDevice.get();
         Sensor sensor = optionalSensor.get();
 
         if (sensor.getDevice()!=null){
-            return Pair.of(Optional.empty(), "Device already assigned to device.");
+            return new ServiceResponse<>(null, "Device already assigned to device.");
         }
         sensor.setDevice(device);
         device.getSensors().add(sensor);
@@ -132,19 +130,19 @@ public class SensorService {
         sensorRepository.save(sensor);
         deviceRepository.save(device);
 
-        return Pair.of(Optional.of(device), "Device added successfully");
+        return new ServiceResponse<>(device, "Device added successfully");
     }
 
-    public Pair<Optional<Sensor>, String> removeSensorFromDevice(Long sensorId, Long deviceId) {
+    public ServiceResponse<Sensor> removeSensorFromDevice(Long sensorId, Long deviceId) {
         Optional<Sensor> optionalSensor = sensorRepository.findById(sensorId);
         Optional<Device> optionalDevice = deviceRepository.findById(deviceId);
 
         if (optionalSensor.isEmpty()) {
-            return Pair.of(Optional.empty(), "Sensor not found");
+            return new ServiceResponse<>(null, "Sensor not found");
         }
 
         if (optionalDevice.isEmpty()) {
-            return Pair.of(Optional.empty(), "Device not found");
+            return new ServiceResponse<>(null, "Device not found");
         }
 
         Sensor sensor = optionalSensor.get();
@@ -153,9 +151,9 @@ public class SensorService {
         if (device.getSensors().contains(sensor)) {
             device.getSensors().remove(sensor);
             deviceRepository.save(device);
-            return Pair.of(Optional.of(sensor), "Sensor removed from device successfully");
+            return new ServiceResponse<>(sensor, "Sensor removed from device successfully");
         } else {
-            return Pair.of(Optional.empty(), "Sensor is not associated with this device");
+            return new ServiceResponse<>(null, "Sensor is not associated with this device");
         }
     }
 }
