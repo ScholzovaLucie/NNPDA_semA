@@ -3,6 +3,7 @@ package org.example.sema.service;
 import org.example.sema.dto.UpdateUserDTO;
 import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,11 +11,8 @@ import java.util.Optional;
 
 @Service
 public class UserService {
-    private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
     public ApplicationUser findUserByUsername(String username) {
         Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
@@ -24,7 +22,7 @@ public class UserService {
     }
 
     public List<ApplicationUser> allUsers(){
-        return (List<ApplicationUser>) userRepository.findAll();
+        return userRepository.findAll();
     }
 
     public void updateUser(UpdateUserDTO updatedUserDto) throws Exception {

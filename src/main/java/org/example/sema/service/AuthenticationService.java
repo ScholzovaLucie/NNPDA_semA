@@ -4,6 +4,7 @@ import org.example.sema.dto.LoginUserDTO;
 import org.example.sema.dto.RegisterUserDTO;
 import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.ApplicationUserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,15 +14,14 @@ import java.util.Optional;
 
 @Service
 public class AuthenticationService {
-    private final ApplicationUserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    @Autowired
+    private ApplicationUserRepository userRepository;
 
-    public AuthenticationService(ApplicationUserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
-    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
 
     public ApplicationUser signup(RegisterUserDTO registerUserDto) {
         ApplicationUser user = new ApplicationUser();
