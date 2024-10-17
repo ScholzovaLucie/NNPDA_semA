@@ -13,8 +13,6 @@ import org.example.sema.service.AuthenticationService;
 import org.example.sema.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,10 +79,10 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "404", description = "User not found")
             }
     )
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody String username) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO data) {
         try {
-            String jwtToken = jwtService.generateToken(username);
-            authenticationService.sendPasswordResetToken(username, jwtToken);
+            String jwtToken = jwtService.generateToken(data.getUsername());
+            authenticationService.sendPasswordResetToken(data.getUsername(), jwtToken);
             return ResponseEntity.ok("Reset token sent to email.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -100,12 +98,9 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "Invalid token or token expired")
             }
     )
-    public ResponseEntity<?> setPassword(@Valid @RequestBody String newPassword) {
+    public ResponseEntity<?> setPassword(@Valid @RequestBody SetPasswordDTO data) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
-            String username = user.getUsername();
-            boolean result = authenticationService.resetPassword(username, newPassword);
+            boolean result = authenticationService.resetPassword(data);
             if (result) {
                 return ResponseEntity.ok("Password has been successfully reset.");
             } else {

@@ -2,6 +2,7 @@ package org.example.sema.service;
 
 import org.example.sema.dto.LoginUserDTO;
 import org.example.sema.dto.RegisterUserDTO;
+import org.example.sema.dto.SetPasswordDTO;
 import org.example.sema.entity.ApplicationUser;
 import org.example.sema.repository.ApplicationUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class AuthenticationService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private JwtService jwtService;
 
     public ApplicationUser signup(RegisterUserDTO registerUserDto) {
         ApplicationUser user = new ApplicationUser();
@@ -52,7 +56,8 @@ public class AuthenticationService {
         emailService.sendEmail(user.getEmail(), subject, body);
     }
 
-    public boolean resetPassword(String username, String newPassword) {
+    public boolean resetPassword(SetPasswordDTO data) {
+        String username = jwtService.extractUsername(data.getToken());
 
         Optional<ApplicationUser> optionalUser = userRepository.findByUsername(username);
 
@@ -62,7 +67,7 @@ public class AuthenticationService {
 
         ApplicationUser user = optionalUser.get();
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(data.getPassword()));
         userRepository.save(user);
 
         return true;
