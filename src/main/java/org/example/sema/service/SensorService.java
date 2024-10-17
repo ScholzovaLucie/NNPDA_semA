@@ -121,8 +121,8 @@ public class SensorService {
         Device device = optionalDevice.get();
         Sensor sensor = optionalSensor.get();
 
-        if (sensor.getDevice()!=null){
-            return new ServiceResponse<>(null, "Device already assigned to device.");
+        if (sensor.getDevice() != null){
+            return new ServiceResponse<>(null, "Sensor already assigned to device.");
         }
         sensor.setDevice(device);
         device.getSensors().add(sensor);
@@ -130,7 +130,7 @@ public class SensorService {
         sensorRepository.save(sensor);
         deviceRepository.save(device);
 
-        return new ServiceResponse<>(device, "Device added successfully");
+        return new ServiceResponse<>(device, "Sensor added successfully");
     }
 
     public ServiceResponse<Sensor> removeSensorFromDevice(Long sensorId, Long deviceId) {
