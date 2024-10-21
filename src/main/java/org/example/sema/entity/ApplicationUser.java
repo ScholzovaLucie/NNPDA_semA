@@ -2,10 +2,11 @@ package org.example.sema.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -14,46 +15,32 @@ import java.util.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@Entity
-@Table(
-        name = "application_user",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "password")
-        }
-)
+@Document(indexName = "application_user")
 @NoArgsConstructor
 public class ApplicationUser implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
-    @Column(nullable = false)
+    @Id
+    private String id;
+
+    @Field(type = FieldType.Text, index = false)
     @JsonIgnore
     private String password;
 
-    @Column(unique=true, nullable = false)
+    @Field(type = FieldType.Keyword)
     private String username;
 
-    @Column(length = 100, nullable = false)
+    @Field(type = FieldType.Keyword)
     private String email;
 
-    @CreationTimestamp
-    @Column(updatable = false, name = "created_at")
-    private Date createdAt;
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date createdAt = new Date();
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Date updatedAt;
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date updatedAt = new Date();
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_device",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "device_id")
-    )
+    @Field(type = FieldType.Nested)
     @JsonBackReference
-    private Set<Device> devices = new HashSet<>();
+    private Set<String> deviceIds = new HashSet<>();
 
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,7 +66,6 @@ public class ApplicationUser implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 
     @Override
     public String toString() {

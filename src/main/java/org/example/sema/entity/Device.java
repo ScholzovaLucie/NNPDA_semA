@@ -1,34 +1,37 @@
 package org.example.sema.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
 @Getter
 @Setter
+@Document(indexName = "device")
 public class Device {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
-    @Column(nullable = false)
+    @Id
+    private String id;
+
+    @Field(type = FieldType.Text)
     private String deviceName;
 
-    @Column()
+    @Field(type = FieldType.Text)
     private String description;
 
-    @ManyToMany(mappedBy = "devices")
-    private Set<ApplicationUser> users = new HashSet<>();
+    @Field(type = FieldType.Keyword)
+    private Set<String> userIds = new HashSet<>();
 
-    @OneToMany(mappedBy = "device", fetch = FetchType.EAGER)
+    @Field(type = FieldType.Nested)
     @JsonManagedReference
-    private List<Sensor> sensors = new ArrayList<>();
+    private List<String> sensorIds = new ArrayList<>();
 
 }
