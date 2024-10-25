@@ -1,26 +1,31 @@
 package org.example.sema.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.List;
+
+@Entity
 @Getter
 @Setter
-@Document(indexName = "sensor")
 public class Sensor {
-
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    @Field(type = FieldType.Text)
+    @Column(nullable = false)
     private String sensorName;
 
-    @Field(type = FieldType.Text)
+    @Column()
     private String description;
 
-    @Field(type = FieldType.Keyword)
-    private String deviceId;
+    @ManyToOne
+    @JoinColumn(name = "device_id", nullable = true)
+    @JsonIgnore
+    private Device device;
+
+    @OneToMany(mappedBy = "sensor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SensorData> data;
 }
