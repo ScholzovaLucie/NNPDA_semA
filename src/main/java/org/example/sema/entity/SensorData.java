@@ -1,5 +1,6 @@
 package org.example.sema.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class SensorData {
     private double value;
     private LocalDateTime created_at;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sensor_id", nullable = false)
     private Sensor sensor;
