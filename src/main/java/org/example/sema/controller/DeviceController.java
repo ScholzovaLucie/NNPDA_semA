@@ -119,7 +119,7 @@ public class DeviceController {
             String username = user.getUsername();
             ServiceResponse<List<Device>> result = deviceService.getDevicesForUser(username);
 
-            if (result.getData().isEmpty()) {
+            if (result.getData() == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
             }
 
