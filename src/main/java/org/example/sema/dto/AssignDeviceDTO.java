@@ -15,7 +15,4 @@ public class AssignDeviceDTO {
     @NotBlank(message = "Device id is required.")
     private Long deviceId;
 
-    @Schema(description = "ID of the user to whom the device is assigned", example = "10")
-    @NotBlank(message = "User id is required.")
-    private Long userId;
 }

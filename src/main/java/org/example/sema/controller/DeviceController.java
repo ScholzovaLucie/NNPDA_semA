@@ -47,7 +47,7 @@ public class DeviceController {
     public ResponseEntity<?> createDevice(@Valid @RequestBody CreateDeviceDTO deviceData) {
         try {
             ServiceResponse<Device> result = deviceService.createDevice(deviceData);
-            if (result.getData() == null) {
+            if (result.getData() != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(result.getMessage());
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.getMessage());
@@ -68,7 +68,9 @@ public class DeviceController {
     )
     public ResponseEntity<?> addDeviceToUser(@Valid @RequestBody AssignDeviceDTO data) {
         try {
-            ServiceResponse<Device> result = deviceService.addDeviceToUser(data.getDeviceId(), data.getUserId());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+            ServiceResponse<Device> result = deviceService.addDeviceToUser(data.getDeviceId(), user.getId());
 
             if (result.getData() == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
@@ -187,7 +189,9 @@ public class DeviceController {
     )
     public ResponseEntity<?> removeDeviceFromUser(@Valid @RequestBody AssignDeviceDTO data) {
         try {
-            ServiceResponse<Device> result = deviceService.removeDeviceFromUser(data.getDeviceId(), data.getUserId());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            ApplicationUser user = (ApplicationUser) authentication.getPrincipal();
+            ServiceResponse<Device> result = deviceService.removeDeviceFromUser(data.getDeviceId(), user.getId());
 
             if (result.getData() == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.getMessage());
