@@ -20,7 +20,7 @@ public class DataGenerationService {
     private SensorRepository sensorRepository;
     private final Random random = new Random();
 
-    @Scheduled(fixedRate = 50000)
+    @Scheduled(fixedRate = 5000)
     public void generateSensorData() {
         List<Sensor> sensors = sensorRepository.findAll();
 
