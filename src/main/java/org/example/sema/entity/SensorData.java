@@ -10,6 +10,13 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+        name = "sensor_data",
+        indexes = {
+                @Index(name = "idx_created_at", columnList = "created_at"),
+                @Index(name = "idx_sensor_id", columnList = "sensor_id")
+        }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,6 +27,7 @@ public class SensorData {
     private Long id;
 
     private double value;
+
     private LocalDateTime created_at;
 
     @JsonIgnore

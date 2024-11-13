@@ -1,5 +1,6 @@
 package org.example.sema.service;
 
+import org.elasticsearch.client.RequestOptions;
 import org.example.sema.entity.Sensor;
 import org.example.sema.entity.SensorData;
 import org.example.sema.repository.SensorDataRepository;
@@ -10,6 +11,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.io.IOException;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 
 @Service
@@ -20,6 +30,9 @@ public class SensorDataService {
 
     @Autowired
     private SensorRepository sensorRepository;
+
+    @Autowired
+    private RestHighLevelClient client;
 
     public ServiceResponse<List<SensorData>> getData(Long sensorId) {
         Optional<Sensor> optionalSensor = sensorRepository.findById(sensorId);
@@ -32,6 +45,20 @@ public class SensorDataService {
             return new ServiceResponse<>(data, "Sensor data found");
         }else {
             return new ServiceResponse<>(null, "Sensor not exist");
+        }
+    }
+
+    public void getAllSensorData() {
+        SearchRequest searchRequest = new SearchRequest("sensor_data_index"); // Změňte na název svého indexu
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchRequest.source(sourceBuilder);
+
+        try {
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            System.out.println(searchResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

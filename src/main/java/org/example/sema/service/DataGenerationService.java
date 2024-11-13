@@ -18,7 +18,6 @@ public class DataGenerationService {
 
     private SensorDataRepository sensorDataRepository;
     private SensorRepository sensorRepository;
-    private DataSender dataSender;
     private final Random random = new Random();
 
     @Scheduled(fixedRate = 50000)
@@ -34,8 +33,6 @@ public class DataGenerationService {
             sensorData.setValue(temperature);
 
             sensorDataRepository.save(sensorData);
-
-            dataSender.sendDataToLogstash(sensorData);
         }
 
     }
