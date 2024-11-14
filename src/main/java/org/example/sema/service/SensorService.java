@@ -50,6 +50,10 @@ public class SensorService {
                 sensor.setDescription(updateSensorDTO.getDescription());
             }
 
+            sensor.setLatitude(updateSensorDTO.getLatitude());
+
+            sensor.setLongitude(updateSensorDTO.getLongitude());
+
             sensorRepository.save(sensor);
             return new ServiceResponse<>(sensor, "Sensor updated successfully");
         } else {
@@ -72,7 +76,7 @@ public class SensorService {
     public ServiceResponse<ApplicationUser> getUserByUsername(String username) {
         Optional<ApplicationUser> user = userRepository.findByUsername(username);
         return user.map(u -> new ServiceResponse<>(u, "User found"))
-                .orElseGet(() ->new ServiceResponse<>(null, "User not found"));
+                .orElseGet(() -> new ServiceResponse<>(null, "User not found"));
     }
 
     public ServiceResponse<List<Sensor>> getSensorsByUser(ApplicationUser user) {
@@ -97,9 +101,11 @@ public class SensorService {
     }
 
     public ServiceResponse<Sensor> addSensor(CreateSensorDTO sensorData) {
-        if (sensorRepository.findBySensorName(sensorData.getName()).isEmpty()){
+        if (sensorRepository.findBySensorName(sensorData.getName()).isEmpty()) {
             Sensor sensor = new Sensor();
             sensor.setSensorName(sensorData.getName());
+            sensor.setLatitude(sensorData.getLatitude());
+            sensor.setLongitude(sensorData.getLongitude());
             sensor.setDescription(sensorData.getDescription() != null && !sensorData.getDescription().isEmpty() ? sensorData.getDescription() : "");
             sensorRepository.save(sensor);
             return new ServiceResponse<>(sensorRepository.save(sensor), "Sensor created");
@@ -121,7 +127,7 @@ public class SensorService {
         Device device = optionalDevice.get();
         Sensor sensor = optionalSensor.get();
 
-        if (sensor.getDevice() != null){
+        if (sensor.getDevice() != null) {
             return new ServiceResponse<>(null, "Sensor already assigned to device.");
         }
         sensor.setDevice(device);

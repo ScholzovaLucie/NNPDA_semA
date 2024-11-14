@@ -21,6 +21,12 @@ public class Sensor {
     @Column()
     private String description;
 
+    @Column(nullable = false)
+    private double latitude;
+
+    @Column(nullable = false)
+    private double longitude;
+
     @ManyToOne
     @JoinColumn(name = "device_id", nullable = true)
     @JsonIgnore

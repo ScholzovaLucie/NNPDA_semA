@@ -10,30 +10,35 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @AllArgsConstructor
 public class DataGenerationService {
 
-    private SensorDataRepository sensorDataRepository;
-    private SensorRepository sensorRepository;
-    private final Random random = new Random();
+    private final SensorDataRepository sensorDataRepository;
+    private final SensorRepository sensorRepository;
+    private final LocationService locationService;
 
     @Scheduled(fixedRate = 5000)
     public void generateSensorData() {
         List<Sensor> sensors = sensorRepository.findAll();
 
-        for (var sensor : sensors){
+        for (var sensor : sensors) {
             SensorData sensorData = new SensorData();
             sensorData.setSensor(sensor);
             sensorData.setCreated_at(LocalDateTime.now());
 
-            double temperature = 15 + (35 - 15) * random.nextDouble();
-            sensorData.setValue(temperature);
+            // Získání aktuální teploty na základě GPS souřadnic senzoru
+            try {
+                double temperature = locationService.getTemperatureByCoordinates(sensor.getLatitude(), sensor.getLongitude());
+                sensorData.setValue(temperature);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Pokud dojde k chybě, nastavíme výchozí hodnotu teploty
+                sensorData.setValue(0.0);
+            }
 
             sensorDataRepository.save(sensorData);
         }
-
     }
 }

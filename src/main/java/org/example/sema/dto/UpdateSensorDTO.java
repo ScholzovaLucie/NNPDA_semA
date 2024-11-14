@@ -15,6 +15,14 @@ public class UpdateSensorDTO {
     @Schema(description = "New name for the sensor", example = "new_sensor_name")
     private String name;
 
+    @Schema(description = "Latitude od the sensor", example = "43.31271")
+    @NotBlank(message = "Latitude is required.")
+    private double latitude;
+
+    @Schema(description = "longitude of the sensor", example = " -133.99036")
+    @NotBlank(message = "Longitude is required.")
+    private double longitude;
+
     @Schema(description = "Optional description for the sensor", example = "Temperature sensor located in the main room")
     private String description;
 
