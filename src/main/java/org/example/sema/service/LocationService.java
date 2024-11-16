@@ -12,11 +12,15 @@ public class LocationService {
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=metric&appid=%s";
 
     public double getTemperatureByCoordinates(double latitude, double longitude) throws JSONException {
-        String url = String.format(API_URL, latitude, longitude, API_KEY);
-        RestTemplate restTemplate = new RestTemplate();
-        String response = restTemplate.getForObject(url, String.class);
+        try {
+            String url = String.format(API_URL, latitude, longitude, API_KEY);
+            RestTemplate restTemplate = new RestTemplate();
+            String response = restTemplate.getForObject(url, String.class);
 
-        JSONObject jsonObject = new JSONObject(response);
-        return jsonObject.getJSONObject("main").getDouble("temp");
+            JSONObject jsonObject = new JSONObject(response);
+            return jsonObject.getJSONObject("main").getDouble("temp");
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

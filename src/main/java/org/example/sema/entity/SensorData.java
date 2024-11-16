@@ -28,7 +28,7 @@ public class SensorData {
 
     private double value;
 
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

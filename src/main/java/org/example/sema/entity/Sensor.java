@@ -1,6 +1,7 @@
 package org.example.sema.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,11 @@ public class Sensor {
     @JoinColumn(name = "device_id", nullable = true)
     @JsonIgnore
     private Device device;
+
+    @JsonProperty("deviceId")
+    public Long getDeviceId() {
+        return device != null ? device.getId() : null;
+    }
 
     @OneToMany(mappedBy = "sensor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SensorData> data;

@@ -26,15 +26,13 @@ public class DataGenerationService {
         for (var sensor : sensors) {
             SensorData sensorData = new SensorData();
             sensorData.setSensor(sensor);
-            sensorData.setCreated_at(LocalDateTime.now());
+            sensorData.setCreatedAt(LocalDateTime.now());
 
-            // Získání aktuální teploty na základě GPS souřadnic senzoru
             try {
                 double temperature = locationService.getTemperatureByCoordinates(sensor.getLatitude(), sensor.getLongitude());
                 sensorData.setValue(temperature);
             } catch (Exception e) {
                 e.printStackTrace();
-                // Pokud dojde k chybě, nastavíme výchozí hodnotu teploty
                 sensorData.setValue(0.0);
             }
 
