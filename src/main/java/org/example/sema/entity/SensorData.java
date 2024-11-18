@@ -10,25 +10,18 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "sensor_data",
-        indexes = {
-                @Index(name = "idx_created_at", columnList = "created_at"),
-                @Index(name = "idx_sensor_id", columnList = "sensor_id")
-        }
-)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class SensorData {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private double value;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime timestamp;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

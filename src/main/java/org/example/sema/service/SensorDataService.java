@@ -29,7 +29,7 @@ public class SensorDataService {
 
             Page<SensorData> data = sensorDataRepository.findBySensorId(
                     sensor.getId(),
-                    PageRequest.of(page, size, Sort.by("createdAt").descending())
+                    PageRequest.of(page, size, Sort.by("timestamp").descending())
             );
 
             if (data.isEmpty()) {

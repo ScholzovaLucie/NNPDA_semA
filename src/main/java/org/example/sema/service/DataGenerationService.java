@@ -19,14 +19,14 @@ public class DataGenerationService {
     private final SensorRepository sensorRepository;
     private final LocationService locationService;
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 50000)
     public void generateSensorData() {
         List<Sensor> sensors = sensorRepository.findAll();
 
         for (var sensor : sensors) {
             SensorData sensorData = new SensorData();
             sensorData.setSensor(sensor);
-            sensorData.setCreatedAt(LocalDateTime.now());
+            sensorData.setTimestamp(LocalDateTime.now());
 
             try {
                 double temperature = locationService.getTemperatureByCoordinates(sensor.getLatitude(), sensor.getLongitude());
